@@ -1,21 +1,56 @@
 import paho.mqtt.client as mqtt
+import stmpy
 import logging
 from threading import Thread
 import json
-from appJar import gui
 
 # TODO: choose proper MQTT broker address
-MQTT_BROKER = 'localhost'
-MQTT_PORT = 8081
+MQTT_BROKER = 'test.mosquitto.org'
+MQTT_PORT = 1883
 
 # TODO: choose proper topics for communication
 MQTT_TOPIC_INPUT = 'ttm4115/command'
 MQTT_TOPIC_OUTPUT = 'ttm4115/answer'
 
 
-class TimerCommandSenderComponent:
+class TimerLogic:
     """
-    The component to send voice commands.
+    State Machine for a named timer.
+
+    This is the support object for a state machine that models a single timer.
+    """
+    def __init__(self, name, duration, component):
+        self._logger = logging.getLogger(__name__)
+        self.name = name
+        self.duration = duration
+        self.component = component
+
+        # TODO: build the transitions
+
+        self.stm = stmpy.Machine(name=name, transitions=[t0, t1, t2], obj=self)
+
+    # TODO define functions as transition effetcs
+
+
+class TimerManagerComponent:
+    """
+    The component to manage named timers in a voice assistant.
+
+    This component connects to an MQTT broker and listens to commands.
+    To interact with the component, do the following:
+
+    * Connect to the same broker as the component. You find the broker address
+    in the value of the variable `MQTT_BROKER`.
+    * Subscribe to the topic in variable `MQTT_TOPIC_OUTPUT`. On this topic, the
+    component sends its answers.
+    * Send the messages listed below to the topic in variable `MQTT_TOPIC_INPUT`.
+
+        {"command": "new_timer", "name": "spaghetti", "duration":50}
+
+        {"command": "status_all_timers"}
+
+        {"command": "status_single_timer", "name": "spaghetti"}
+
     """
 
     def on_connect(self, client, userdata, flags, rc):
@@ -23,9 +58,48 @@ class TimerCommandSenderComponent:
         self._logger.debug('MQTT connected to {}'.format(client))
 
     def on_message(self, client, userdata, msg):
-        pass
+        """
+        Processes incoming MQTT messages.
+
+        We assume the payload of all received MQTT messages is an UTF-8 encoded
+        string, which is formatted as a JSON object. The JSON object contains
+        a field called `command` which identifies what the message should achieve.
+
+        As a reaction to a received message, we can for example do the following:
+
+        * create a new state machine instance to handle the incoming messages,
+        * route the message to an existing state machine session,
+        * handle the message right here,
+        * throw the message away.
+
+        """
+        self._logger.debug('Incoming message to topic {}'.format(msg.topic))
+
+        # TODO unwrap JSON-encoded payload
+        
+        # TODO extract command
+
+        # TODO determine what to do
+
 
     def __init__(self):
+        """
+        Start the component.
+
+        ## Start of MQTT
+        We subscribe to the topic(s) the component listens to.
+        The client is available as variable `self.client` so that subscriptions
+        may also be changed over time if necessary.
+
+        The MQTT client reconnects in case of failures.
+
+        ## State Machine driver
+        We create a single state machine driver for STMPY. This should fit
+        for most components. The driver is available from the variable
+        `self.driver`. You can use it to send signals into specific state
+        machines, for instance.
+
+        """
         # get the logger object for the component
         self._logger = logging.getLogger(__name__)
         print('logging under name {}.'.format(__name__))
@@ -39,69 +113,15 @@ class TimerCommandSenderComponent:
         self.mqtt_client.on_message = self.on_message
         # Connect to the broker
         self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+        # subscribe to proper topic(s) of your choice
+        self.mqtt_client.subscribe(MQTT_TOPIC_INPUT)
         # start the internal loop to process MQTT messages
         self.mqtt_client.loop_start()
 
-        self.create_gui()
-
-    def create_gui(self):
-        self.app = gui()
-
-        def extract_timer_name(label):
-            label = label.lower()
-            if 'spaghetti' in label: return 'spaghetti'
-            if 'green tea' in label: return 'green tea'
-            if 'soft eggs' in label: return 'soft eggs'
-            return None
-
-        def extract_duration_seconds(label):
-            label = label.lower()
-            if 'spaghetti' in label: return 600
-            if 'green tea' in label: return 120
-            if 'soft eggs' in label: return 240
-            return None
-
-        def publish_command(command):
-            payload = json.dumps(command)
-            self._logger.info(command)
-            self.mqtt_client.publish(MQTT_TOPIC_INPUT, payload=payload, qos=2)
-
-        self.app.startLabelFrame('Starting timers:')
-        def on_button_pressed_start(title):
-            name = extract_timer_name(title)
-            duration = extract_duration_seconds(title)
-            command = {"command": "new_timer", "name": name, "duration": duration}
-            publish_command(command)
-        self.app.addButton('Start Spaghetti Timer', on_button_pressed_start)
-        self.app.addButton('Start Green Tea Timer', on_button_pressed_start)
-        self.app.addButton('Start Soft Eggs Timer', on_button_pressed_start)
-        self.app.stopLabelFrame()
-
-        self.app.startLabelFrame('Stopping timers:')
-        def on_button_pressed_stop(title):
-            name = extract_timer_name(title)
-            command = {"command": "cancel_timer", "name": name}
-            publish_command(command)
-        self.app.addButton('Cancel Spaghetti Timer', on_button_pressed_stop)
-        self.app.addButton('Cancel Green Tea Timer', on_button_pressed_stop)
-        self.app.addButton('Cancel Soft Eggs Timer', on_button_pressed_stop)
-        self.app.stopLabelFrame()
-
-        self.app.startLabelFrame('Asking for status:')
-        def on_button_pressed_status(title):
-            name = extract_timer_name(title)
-            if name is None:
-                command = {"command": "status_all_timers"}
-            else:
-                command = {"command": "status_single_timer", "name": name}
-            publish_command(command)
-        self.app.addButton('Get All Timers Status', on_button_pressed_status)
-        self.app.addButton('Get Spaghetti Timer Status', on_button_pressed_status)
-        self.app.addButton('Get Green Tea Timer Status', on_button_pressed_status)
-        self.app.addButton('Get Soft Eggs Timer Status', on_button_pressed_status)
-        self.app.stopLabelFrame()
-
-        self.app.go()
+        # we start the stmpy driver, without any state machines for now
+        self.stm_driver = stmpy.Driver()
+        self.stm_driver.start(keep_active=True)
+        self._logger.debug('Component initialization finished')
 
 
     def stop(self):
@@ -110,6 +130,9 @@ class TimerCommandSenderComponent:
         """
         # stop the MQTT client
         self.mqtt_client.loop_stop()
+
+        # stop the state machine Driver
+        self.stm_driver.stop()
 
 
 # logging.DEBUG: Most fine-grained logging, printing everything
@@ -125,4 +148,4 @@ formatter = logging.Formatter('%(asctime)s - %(name)-12s - %(levelname)-8s - %(m
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-t = TimerCommandSenderComponent()
+t = TimerManagerComponent()
