@@ -12,11 +12,7 @@ MQTT_PORT = 8081
 MQTT_TOPIC_INPUT = 'command'
 
 
-class StudentUI:
-    """
-    The component to send voice commands.
-    """
-
+class TeacherUI:
     def on_connect(self, client, userdata, flags, rc):
        	print('MQTT connected to {}'.format(client))
 
@@ -39,14 +35,12 @@ class StudentUI:
             print(command)
             self.mqtt_client.publish(MQTT_TOPIC_INPUT, payload=payload, qos=2)
 
-        self.app.startLabelFrame('Student Actions:')
+        self.app.startLabelFrame('Teacher Actions:')
         self.app.addButton('Login', lambda:  publish_command("login"))
-        self.app.addButton('Task Selected', lambda: publish_command("task_selected"))
-        self.app.addButton('Back', lambda: publish_command("back"))
-        self.app.addButton('Ask', lambda: publish_command("ask"))
-        self.app.addButton('Cancel', lambda: publish_command("cancel"))
-        self.app.addButton('Send', lambda: publish_command("send_notification"))
-        self.app.addButton('Finish', lambda: publish_command("finish"))
+        self.app.addButton('Duty', lambda: publish_command("duty"))
+        self.app.addButton('Task Published', lambda: publish_command("task_published"))
+        self.app.addButton('Assistance Notification', lambda: publish_command("assistance_notification"))
+        self.app.addButton('Complete Help', lambda: publish_command("complete_help"))
         self.app.stopLabelFrame()
 
         self.app.go()
@@ -56,4 +50,4 @@ class StudentUI:
         self.mqtt_client.loop_stop()
 
 
-t = StudentUI()
+t = TeacherUI()
