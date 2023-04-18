@@ -1,4 +1,6 @@
 from stmpy import Machine, Driver
+
+
 t_initial = {'source': 'initial',
              'target': 'active'}
 
@@ -11,6 +13,13 @@ t_start = {'trigger': 'start',
 t_stop = {'trigger': 'stop',
     'source': 'active',
     'target': 'idle'}
+
+s_idle = {'name': 'idle',
+        'entry': ''}
+
+s_active = {'name': 'active',
+        'entry': ''}
+
 
 state_machine = Machine('my_machine', transitions=[t_initial, t_start, t_stop] , obj=None)
 
