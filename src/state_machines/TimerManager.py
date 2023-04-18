@@ -5,12 +5,12 @@ from threading import Thread
 import json
 
 # TODO: choose proper MQTT broker address
-MQTT_BROKER = 'test.mosquitto.org'
+MQTT_BROKER = "test.mosquitto.org"
 MQTT_PORT = 1883
 
 # TODO: choose proper topics for communication
-MQTT_TOPIC_INPUT = 'ttm4115/command'
-MQTT_TOPIC_OUTPUT = 'ttm4115/answer'
+MQTT_TOPIC_INPUT = "ttm4115/command"
+MQTT_TOPIC_OUTPUT = "ttm4115/answer"
 
 
 class TimerLogic:
@@ -19,6 +19,7 @@ class TimerLogic:
 
     This is the support object for a state machine that models a single timer.
     """
+
     def __init__(self, name, duration, component):
         self._logger = logging.getLogger(__name__)
         self.name = name
@@ -55,7 +56,7 @@ class TimerManagerComponent:
 
     def on_connect(self, client, userdata, flags, rc):
         # we just log that we are connected
-        self._logger.debug('MQTT connected to {}'.format(client))
+        self._logger.debug("MQTT connected to {}".format(client))
 
     def on_message(self, client, userdata, msg):
         """
@@ -73,14 +74,13 @@ class TimerManagerComponent:
         * throw the message away.
 
         """
-        self._logger.debug('Incoming message to topic {}'.format(msg.topic))
+        self._logger.debug("Incoming message to topic {}".format(msg.topic))
 
         # TODO unwrap JSON-encoded payload
-        
+
         # TODO extract command
 
         # TODO determine what to do
-
 
     def __init__(self):
         """
@@ -102,11 +102,13 @@ class TimerManagerComponent:
         """
         # get the logger object for the component
         self._logger = logging.getLogger(__name__)
-        print('logging under name {}.'.format(__name__))
-        self._logger.info('Starting Component')
+        print("logging under name {}.".format(__name__))
+        self._logger.info("Starting Component")
 
         # create a new MQTT client
-        self._logger.debug('Connecting to MQTT broker {} at port {}'.format(MQTT_BROKER, MQTT_PORT))
+        self._logger.debug(
+            "Connecting to MQTT broker {} at port {}".format(MQTT_BROKER, MQTT_PORT)
+        )
         self.mqtt_client = mqtt.Client()
         # callback methods
         self.mqtt_client.on_connect = self.on_connect
@@ -121,8 +123,7 @@ class TimerManagerComponent:
         # we start the stmpy driver, without any state machines for now
         self.stm_driver = stmpy.Driver()
         self.stm_driver.start(keep_active=True)
-        self._logger.debug('Component initialization finished')
-
+        self._logger.debug("Component initialization finished")
 
     def stop(self):
         """
@@ -144,7 +145,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(debug_level)
 ch = logging.StreamHandler()
 ch.setLevel(debug_level)
-formatter = logging.Formatter('%(asctime)s - %(name)-12s - %(levelname)-8s - %(message)s')
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)-12s - %(levelname)-8s - %(message)s"
+)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
