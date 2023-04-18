@@ -124,4 +124,9 @@ class StudentDriver:
         self.stm_driver.stop()
 
 
-t = StudentDriver()
+def main():
+    t = StudentDriver()
+
+
+if __name__ == "__main__":
+    main()
