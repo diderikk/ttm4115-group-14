@@ -5,8 +5,8 @@ from threading import Thread
 import json
 
 # TODO: choose proper MQTT broker address
-MQTT_BROKER = 'localhost'
-MQTT_PORT = 8081
+MQTT_BROKER = 'ec2-13-53-46-117.eu-north-1.compute.amazonaws.com'
+MQTT_PORT = 1883
 
 # TODO: choose proper topics for communication
 MQTT_TOPIC_INPUT = 'command'
@@ -91,6 +91,7 @@ class TeacherDriver:
     def __init__(self):
         # get the logger object for the component
         self.mqtt_client = mqtt.Client()
+        self.mqtt_client.username_pw_set("mosquitto", "mosquitto")
         # callback methods
         self.mqtt_client.on_connect = self.on_connect
         self.mqtt_client.on_message = self.on_message

@@ -16,6 +16,7 @@ Django = "^4.2"
 paho-mqtt = "^1.6.1"
 stmpy = "^0.7.5"
 psycopg2 = "^2.9.6"
+appjar = "^0.94.0"
 
 [tool.poetry.scripts]
 student_machine = 'state_machines.StudentMachine:main'
