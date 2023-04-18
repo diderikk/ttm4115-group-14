@@ -4,6 +4,10 @@ t_initial = {"source": "initial", "target": "active"}
 
 t_start = {"trigger": "start", "source": "idle", "target": "active"}
 
+s_idle = {'name': 'idle', 'entry': ''}
+
+s_active = {'name': 'active', 'entry': ''}
+
 # Change 1: effect is removed
 t_stop = {"trigger": "stop", "source": "active", "target": "idle"}
 
