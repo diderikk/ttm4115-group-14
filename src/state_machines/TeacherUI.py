@@ -5,21 +5,21 @@ import json
 from appJar import gui
 
 # TODO: choose proper MQTT broker address
-MQTT_BROKER = 'ec2-13-53-46-117.eu-north-1.compute.amazonaws.com'
+MQTT_BROKER = "ec2-13-53-46-117.eu-north-1.compute.amazonaws.com"
 MQTT_PORT = 1883
 
 # TODO: choose proper topics for communication
-MQTT_TOPIC_INPUT = 'command'
+MQTT_TOPIC_INPUT = "command"
 
 
 class TeacherUI:
     def on_connect(self, client, userdata, flags, rc):
-       	print('MQTT connected to {}'.format(client))
+        print("MQTT connected to {}".format(client))
 
     def __init__(self):
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.username_pw_set("mosquitto", "mosquitto")
-        
+
         # callback methods
         self.mqtt_client.on_connect = self.on_connect
         # Connect to the broker
@@ -37,16 +37,18 @@ class TeacherUI:
             print(command)
             self.mqtt_client.publish(MQTT_TOPIC_INPUT, payload=payload, qos=2)
 
-        self.app.startLabelFrame('Teacher Actions:')
-        self.app.addButton('Login', lambda:  publish_command("login"))
-        self.app.addButton('Duty', lambda: publish_command("duty"))
-        self.app.addButton('Task Published', lambda: publish_command("task_published"))
-        self.app.addButton('Assistance Notification', lambda: publish_command("assistance_notification"))
-        self.app.addButton('Complete Help', lambda: publish_command("complete_help"))
+        self.app.startLabelFrame("Teacher Actions:")
+        self.app.addButton("Login", lambda: publish_command("login"))
+        self.app.addButton("Duty", lambda: publish_command("duty"))
+        self.app.addButton("Task Published", lambda: publish_command("task_published"))
+        self.app.addButton(
+            "Assistance Notification",
+            lambda: publish_command("assistance_notification"),
+        )
+        self.app.addButton("Complete Help", lambda: publish_command("complete_help"))
         self.app.stopLabelFrame()
 
         self.app.go()
-
 
     def stop(self):
         self.mqtt_client.loop_stop()
