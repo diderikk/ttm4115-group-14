@@ -5,8 +5,8 @@ import json
 from appJar import gui
 
 # TODO: choose proper MQTT broker address
-MQTT_BROKER = 'localhost'
-MQTT_PORT = 8081
+MQTT_BROKER = 'ec2-13-53-46-117.eu-north-1.compute.amazonaws.com'
+MQTT_PORT = 1883
 
 # TODO: choose proper topics for communication
 MQTT_TOPIC_INPUT = 'command'
@@ -49,5 +49,5 @@ class TeacherUI:
     def stop(self):
         self.mqtt_client.loop_stop()
 
-
-t = TeacherUI()
+def main():
+    t = TeacherUI()

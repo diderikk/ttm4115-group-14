@@ -16,10 +16,13 @@ Django = "^4.2"
 paho-mqtt = "^1.6.1"
 stmpy = "^0.7.5"
 psycopg2 = "^2.9.6"
+appJar = "^0.94.0"
 
 [tool.poetry.scripts]
 student_machine = 'state_machines.StudentMachine:main'
 teacher_machine = 'state_machines.TeacherMachine:main'
+student_ui = 'state_machines.StudentUI:main'
+teacher_ui = 'state_machines.TeacherUI:main'
 hermes = 'hermes.manage:main'
 
 [build-system]

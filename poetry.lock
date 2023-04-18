@@ -1,4 +1,12 @@
 [[package]]
+name = "appJar"
+version = "0.94.0"
+description = "An easy-to-use, feature-rich GUI wrapper for tKinter. Designed specifically for use in the classroom, but powerful enough to be used anywhere."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "asgiref"
 version = "3.6.0"
 description = "ASGI specs, helper code, and adapters"
@@ -84,9 +92,12 @@ python-versions = ">=2"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "1b7ea400157200570d41d420085cba6a33ab81458532592066f2c07524d72644"
+content-hash = "7704f3603230cd1697d9929156294883d1fc6685e494a947baa36a64283357f9"
 
 [metadata.files]
+appJar = [
+    {file = "appJar-0.94.0.tar.gz", hash = "sha256:0dbd7ce2cb640392cb33ff94fad7318c7b7f2ba3fe111e2ca35cbf119acbda97"},
+]
 asgiref = [
     {file = "asgiref-3.6.0-py3-none-any.whl", hash = "sha256:71e68008da809b957b7ee4b43dbccff33d1b23519fb8344e33f049897077afac"},
     {file = "asgiref-3.6.0.tar.gz", hash = "sha256:9567dfe7bd8d3c8c892227827c41cce860b368104c3431da67a0c5a65a949506"},
