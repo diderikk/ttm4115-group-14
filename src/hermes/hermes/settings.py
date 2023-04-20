@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+APPEND_SLASH = True
+
 
 # Application definition
 
@@ -37,7 +39,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "hermes.studentapp"
+    "hermes.studentapp",
+    "hermes.accounts"
 ]
 
 MIDDLEWARE = [
@@ -84,6 +87,19 @@ DATABASES = {
         "PORT": "5432",
     },
 }
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
+
+PASSWORD_PBKDF2_ITERATIONS = 100000
+
+AUTHENTICATION_BACKENDS = [
+    'hermes.accounts.authentication.UserModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AUTH_USER_MODEL = 'accounts.User'
 
 
 # Password validation

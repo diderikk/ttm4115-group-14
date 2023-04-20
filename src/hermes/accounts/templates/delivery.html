@@ -1,0 +1,54 @@
+<html>
+<body>
+	<div>
+		<h1>Upload</h1>
+		<form method="post" enctype="multipart/form-data" action="{% url 'deliver' %}">
+			{% csrf_token %}
+			<input type="file" name="myfile">
+			<button type="submit">Upload</button>
+		</form>
+		<h1>Update</h1>
+		<form id="update-form" method="POST" enctype="multipart/form-data"
+			action="{% url 'deliver_detail' id='e558be58-5de4-4c07-83af-5ddb47f3d3b4' %}">
+			{% csrf_token %}
+			<input type="file" name="myfile">
+			<button type="submit">Update</button>
+		</form>
+	</div>
+</body>
+<script>
+	const form = document.getElementById('update-form');
+	form.addEventListener('submit', async function (event) {
+		event.preventDefault(); // Prevent form from submitting normally
+
+		const fileInput = form.querySelector('input[type="file"]');
+		const file = fileInput.files[0];
+		console.log(file)
+
+		const data = {
+			myfile: file
+		};
+
+		try {
+			const response = await fetch(form.action, {
+				method: 'PUT',
+				body: JSON.stringify(data),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				console.log('File uploaded successfully!');
+				// Redirect to a success page or do something else
+			} else {
+				console.log('Error uploading file.');
+				// Handle the error
+			}
+		} catch (error) {
+			console.log('An error occurred:', error);
+			// Handle the error
+		}
+	});
+</script>
+</html>

@@ -20,4 +20,5 @@ from django.urls import path, include
 urlpatterns = [
     path("", include("hermes.studentapp.urls")),
     path("admin/", admin.site.urls),
+    path("", include("hermes.accounts.urls"))
 ]
