@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, QueryDict
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from hermes.accounts.models import User, Group, Task, Delivery
+from .models import User, Group, Task, Delivery
+from .websocket import send_to_group
 import json, os, sys
 
 # sys.path.append(os.path.dirname(__file__))
@@ -13,6 +14,20 @@ def test_template(request):
 
 def test_login(request):
   return render(request, "login.html")
+
+def test_task_form(request):
+  return render(request, "task_form.html")
+
+def test_teacher_home(request):
+  units = Task.objects.values_list('unit', flat=True).distinct()
+  groups = Group.objects.values_list('number', flat=True).distinct()
+  context = {'units': units, 'groups': groups}
+  print(groups)
+  return render(request, "teacher_home.html", context)
+
+async def test_http_to_websocket(request):
+  await send_to_group('test', 'test')
+  return JsonResponse({'test': 'test'}, status=200)
 
 @login_required
 @csrf_exempt

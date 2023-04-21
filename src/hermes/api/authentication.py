@@ -1,6 +1,6 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import make_password
-from hermes.accounts.models import User
+from hermes.api.models import User
 
 class UserModelBackend(ModelBackend):
 	def get_user(self, user_id):

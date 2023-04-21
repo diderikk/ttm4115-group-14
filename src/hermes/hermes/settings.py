@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "hermes.studentapp",
-    "hermes.accounts",
+    "hermes.api",
     "channels"
 ]
 
@@ -96,11 +96,19 @@ PASSWORD_HASHERS = [
 PASSWORD_PBKDF2_ITERATIONS = 100000
 
 AUTHENTICATION_BACKENDS = [
-    'hermes.accounts.authentication.UserModelBackend',
+    'hermes.api.authentication.UserModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'api.User'
+
+ASGI_APPLICATION = "hermes.hermes.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
 
 
 # Password validation

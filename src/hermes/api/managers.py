@@ -6,6 +6,8 @@ from django.contrib.auth.hashers import make_password
 
 class GroupManager(models.Manager):
 	def create_group(self, number):
+		if number == None:
+			return None
 		try:
 			return self.get(number=number)
 		except:

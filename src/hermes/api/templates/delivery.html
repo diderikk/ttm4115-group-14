@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+
 <body>
 	<div>
 		<h1>Upload</h1>
@@ -50,5 +51,24 @@
 			// Handle the error
 		}
 	});
+
+	const socket = new WebSocket('ws://127.0.0.1:8000/ws/test/');
+
+	socket.addEventListener('open', function (event) {
+		console.log('Connected to WebSocket!');
+	});
+
+	socket.addEventListener('message', function (event) {
+		console.log('Received message:', event.data);
+	});
+
+	socket.addEventListener('close', function (event) {
+		console.log('Disconnected from WebSocket!');
+	});
+
+	socket.addEventListener('error', function (event) {
+		console.log('Error occurred:', event);
+	});
 </script>
+
 </html>

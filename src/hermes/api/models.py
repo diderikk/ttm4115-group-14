@@ -1,13 +1,13 @@
 from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
-from hermes.accounts.managers import UserManager, GroupManager, TaskManager, DeliveryManager
+from .managers import UserManager, GroupManager, TaskManager, DeliveryManager
 
 
 
 class Group(models.Model):
 	uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-	number = models.IntegerField(unique=True, null=True)
+	number = models.IntegerField(unique=True)
  
 	REQUIRED_FIELDS = ['number']
  
