@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "hermes.studentapp",
-    "hermes.accounts"
+    "hermes.accounts",
+    "channels"
 ]
 
 MIDDLEWARE = [
