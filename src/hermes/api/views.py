@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, QueryDict
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
+from asgiref.sync import async_to_sync, sync_to_async
 from .models import User, Group, Task, Delivery
 from .websocket import send_to_group
 import json, os, sys
@@ -45,18 +46,24 @@ async def test_http_to_websocket(request):
   await send_to_group('teacher', json.dumps({'unit': 1, 'group': 1, 'title': 'Title 2'}))
   return JsonResponse({'test': 'test'}, status=200)
 
-@login_required
+
+@async_to_sync
+async def send_to_ws(message):
+  await send_to_group('teacher', message)
+  
+@login_required(login_url='/login/')
 @csrf_exempt
 def deliver(request):
   if request.method == 'POST' and request.FILES['myfile']:
-    print("HELLO")
     file = request.FILES['myfile']
     group = request.user.group
     task = Task.objects.get(pk="1d886973-ed06-44bb-8628-5c1d6f011fc1") # TODO: read from request
     delivery = Delivery.objects.create_delivery(file=file, group=group, task=task)
-    await send_to_group('teacher', json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title}))
+    message = json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title})
+    send_to_ws(message)
     return JsonResponse({'id': delivery.uuid}, status=201)
   elif request.method == 'GET':
+    # deliveries = await get_all_deliveries()
     return JsonResponse(list(map(serialize_delivery, Delivery.objects.all())), status=200, safe=False)
   else:
     return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
