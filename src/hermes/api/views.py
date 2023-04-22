@@ -19,24 +19,42 @@ def test_task_form(request):
   return render(request, "task_form.html")
 
 def test_teacher_home(request):
-  units = Task.objects.values_list('unit', flat=True).distinct()
+  unit_titles = {}
+  for unit, title in Task.objects.values_list('unit', 'title'):
+        # If the unit is not yet in the dictionary, add it and set the value to an empty list
+    if unit not in unit_titles:
+        unit_titles[unit] = [title]
+    else:
+      unit_titles[unit].append(title)
+      
+  group_task = {}
   groups = Group.objects.values_list('number', flat=True).distinct()
-  context = {'units': units, 'groups': groups}
-  print(groups)
+  for group in Group.objects.values_list('number', flat=True).distinct():
+    group_task[f"{group}"] = []
+    
+  
+  for group, task in Delivery.objects.values_list('group__number', 'task__title'):
+    group_task[f"{group}"].append(task)
+      
+      
+  context = {'unit_titles': unit_titles, 'group_task': group_task}
+  print(unit_titles)
   return render(request, "teacher_home.html", context)
 
 async def test_http_to_websocket(request):
-  await send_to_group('test', 'test')
+  await send_to_group('teacher', json.dumps({'unit': 1, 'group': 1, 'title': 'Title 2'}))
   return JsonResponse({'test': 'test'}, status=200)
 
 @login_required
 @csrf_exempt
 def deliver(request):
   if request.method == 'POST' and request.FILES['myfile']:
+    print("HELLO")
     file = request.FILES['myfile']
     group = request.user.group
-    task = Task.objects.get(pk="b425f6f7-080e-4f8d-8d49-97036d77cbfe") # TODO: read from request
+    task = Task.objects.get(pk="1d886973-ed06-44bb-8628-5c1d6f011fc1") # TODO: read from request
     delivery = Delivery.objects.create_delivery(file=file, group=group, task=task)
+    await send_to_group('teacher', json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title}))
     return JsonResponse({'id': delivery.uuid}, status=201)
   elif request.method == 'GET':
     return JsonResponse(list(map(serialize_delivery, Delivery.objects.all())), status=200, safe=False)
