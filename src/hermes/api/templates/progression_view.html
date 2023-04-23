@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Teachers</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="py-24 flex flex-col justify-start items-center w-screen h-screen overflow-y-auto">
+	<h1 class="text-5xl font-bold mb-22">Units</h1>
+	<div id="create-task-btn"
+		class="flex justify-center items-center w-44 h-20 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-10 rounded focus:outline-none focus:shadow-outline cursor-pointer">
+		Create Task
+	</div>
+	<div class="flex flex-col justify-start items-center w-full">
+		{% for unit, titles in unit_titles.items %}
+		<div
+			class="flex flex-col items-center justify-start rounded text-xl font-bold w-[30%] h-full bg-gray-300 mb-10 p-5 overflow-y-none">
+			<h2 class="text-2xl">Unit {{ unit }}</h2>
+			<table class="w-full h-full">
+				<thead>
+					<tr class="border-b-2">
+						<th class="py-4">Group</th>
+						{% for title in titles %}
+						<th>{{ title }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for group, tasks in group_task.items %}
+					<tr class="border-b-2">
+						<th class="py-4">{{ group }}</th>
+						{% for title in titles %}
+						{% if title in tasks %}
+						<th id="{{ unit }}_{{ group }}_{{ title|slugify }}">X</th>
+						{% else %}
+						<th id="{{ unit }}_{{ group }}_{{ title|slugify }}"></th>
+						{% endif %}
+						{% endfor %}
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		{% endfor %}
+	</div>
+	<div class="flex flex-col py-4 items-center absolute inset-y-0 right-[15%] my-auto w-52 min-h-[20vh] h-fit bg-gray-300 rounded">
+		<h3 class="text-lg font-bold underline">Waiting List:</h3>
+		<div class="w-full flex flex-col items-center">
+			{% for group in notifications %}
+				<div class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
+			{% endfor %}
+		</div>
+	</div>
+</body>
+
+<script>
+	createTaskButton = document.getElementById("create-task-btn")
+	createTaskButton.addEventListener('click', () => {
+		fetch('/api/duty/', {
+			method: 'POST',
+		})
+			.then(response => {
+				if(response.status == 200){
+					window.location.href = "/state/"
+					window.location.reload()
+				}
+			})
+	})
+
+	const socket = new WebSocket('ws://127.0.0.1:8000/ws/teacher/');
+
+	socket.addEventListener('open', function (event) {
+		console.log('Connected to WebSocket!');
+	});
+
+	socket.addEventListener('message', function (event) {
+		broadcast = JSON.parse(JSON.parse(event.data)["broadcast"])
+		title = broadcast.title.replaceAll(' ', '-').toLowerCase()
+		document.getElementById(`${broadcast.unit}_${broadcast.group}_${title}`).innerHTML = "X"
+	});
+
+	socket.addEventListener('close', function (event) {
+		console.log('Disconnected from WebSocket!');
+	});
+
+	socket.addEventListener('error', function (event) {
+		console.log('Error occurred:', event);
+	});
+</script>
+
+</html>

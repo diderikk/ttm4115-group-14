@@ -17,6 +17,17 @@ class GroupManager(models.Manager):
 			group.save()
 		return group
 
+class NotificationManager(models.Manager):
+  def create_notification(self, description, group, task=None):
+    notification = self.model(
+			description=description,
+			group=group,
+			task=task
+		)
+    
+    notification.save()
+    return notification
+
 class TaskManager(models.Manager):
 	def create_task(self, title, description, unit):
    

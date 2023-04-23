@@ -58,7 +58,6 @@
 				object[key] = value;
 			});
 			const json = JSON.stringify(object);
-			console.log(json)
 			const response = await fetch(form.action, {
 				method: form.method,
 				body: json,
@@ -69,7 +68,8 @@
 			});
 
 			if (response.status == 200) {
-				window.location.href = "/test/";
+				window.location.href = "/state/"
+				window.location.reload()
 			}
 		});
 	</script>

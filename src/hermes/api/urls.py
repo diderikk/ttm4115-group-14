@@ -7,16 +7,19 @@ from .websocket import WebSocketConsumer
 urlpatterns = [
     path("api/accounts/", views.create_user),
     path('api/login/', views.login, name='login'),
-    path('api/logout/', views.logout),
     path('api/tasks/', views.tasks, name='tasks'),
     path('api/tasks/<uuid:id>/', views.task_detail),
     path('api/deliveries/', views.deliver, name='deliver'),
     path('api/deliveries/<uuid:id>/', views.deliver_detail, name='deliver_detail'),
-    path('api/test/', views.test_http_to_websocket),
-    path('test/', views.test_template),
-    path('login/', views.test_login),
-    path('tasks/', views.test_task_form),
-    path('teachers/', views.test_teacher_home),
+    path('api/notifications/', views.notifications, name='notifications'),
+    path('api/notifications/<uuid:id>/', views.notifications_detail, name='notifications_detail'),
+    path('api/duty/', views.duty, name='duty'),
+    # path('api/test/', views.test_http_to_websocket),
+    # path('test/', views.test_template),
+    # path('login/', views.test_login),
+    # path('tasks/', views.test_task_form),
+    # path('teachers/', views.progression_view),
+    path('state/', views.render_state)
 ]
 
 websocket_urlpatterns = [
