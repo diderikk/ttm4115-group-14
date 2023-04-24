@@ -7,17 +7,23 @@ from asgiref.sync import async_to_sync, sync_to_async
 from .models import User, Group, Task, Delivery, Notifiction
 from .websocket import send_to_group
 from hermes.state_machines.TeacherMachine import t
-import json, os, sys, time
-
-def test_template(request):
-  return render(request, "delivery.html")
-
-def test_task_form(request):
-  return render(request, "task_form.html")
+import json, os, sys, time, uuid
 
 def render_state(request):
-  state = t.student_machine.state
-  return render(request, f"{state}.html", get_state_context(request=request, state=state))
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  if state_cookie != None and t.get_machine(state_cookie) != None:
+    state = t.get_machine(state_cookie).state
+    print(state)
+    return render(request, f"{state}.html", get_state_context(request=request, state=state))
+  else:
+    cookie = str(uuid.uuid4())
+    t.add_machine(cookie)
+    time.sleep(0.3)
+    state = t.get_machine(cookie).state
+    response = render(request, f"{state}.html", get_state_context(request=request, state=state))
+    response.set_cookie("STATE_COOKIE", value=cookie, httponly=True)
+    return response
+    
 
 def get_state_context(request, state):
   if state == 'authentication':
@@ -63,7 +69,7 @@ def deliver(request):
   if request.method == 'POST' and request.FILES['myfile']:
     file = request.FILES['myfile']
     group = request.user.group
-    task = Task.objects.get(pk="1d886973-ed06-44bb-8628-5c1d6f011fc1") # TODO: read from request
+    task = Task.objects.get(pk="3c6b698d-526c-486b-840e-655f13e39892") # TODO: read from request
     delivery = Delivery.objects.create_delivery(file=file, group=group, task=task)
     message = json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title})
     send_to_ws(message)
@@ -103,6 +109,7 @@ def deliver_detail(request, id):
 @csrf_exempt
 @login_required
 def notifications(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'POST':
     data = json.loads(request.body)
     description = data.get("description")
@@ -117,7 +124,7 @@ def notifications(request):
   elif request.method == 'DELETE':
     user = request.user
     Notifiction.objects.delete_notification_by_assignee(assignee=user)
-    t.trigger('complete_help')
+    t.trigger(uuid=state_cookie, trigger='complete_help')
       
     time.sleep(0.5)
     return JsonResponse({}, status=204)
@@ -128,9 +135,10 @@ def notifications(request):
 @login_required
 def notifications_detail(request, group_number):
   user = request.user
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'PUT':
     Notifiction.objects.update_assignee(group_number=group_number, user=user)
-    t.trigger('assistance_notification')
+    t.trigger(uuid=state_cookie, trigger='assistance_notification')
     time.sleep(0.5)
     return JsonResponse({}, status=204)
   else:
@@ -140,10 +148,11 @@ def notifications_detail(request, group_number):
 @csrf_exempt
 def login(request):
   if request.method == 'POST':
+    state_cookie = request.COOKIES.get("STATE_COOKIE")
     data = json.loads(request.body)
     email = data.get('email')
     password = data.get('password')
-    t.trigger_login(request=request, email=email, password=password)
+    t.trigger_login(uuid=state_cookie, request=request, email=email, password=password)
     time.sleep(2)
     return JsonResponse({'success': True}, status=200)
   else:
@@ -152,13 +161,15 @@ def login(request):
 @login_required
 @csrf_exempt
 def duty(request):
-    t.trigger('duty')
-    time.sleep(0.5)
-    return JsonResponse({'success': True}, status=200)
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  t.trigger(uuid=state_cookie, trigger='duty')
+  time.sleep(0.5)
+  return JsonResponse({'success': True}, status=200)
   
 @login_required
 @csrf_exempt
 def tasks(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'POST':
     data = json.loads(request.body)
     title = data.get('title')
@@ -166,7 +177,7 @@ def tasks(request):
     unit = data.get('unit')
     # TODO: Move to state machine?
     task = Task.objects.create_task(title=title, description=description, unit=unit)
-    t.trigger('task_published')
+    t.trigger(uuid=state_cookie, trigger='task_published')
     time.sleep(0.5)
     return JsonResponse(serialize_task(task), status=201)
   elif request.method == 'GET':

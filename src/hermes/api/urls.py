@@ -14,7 +14,7 @@ urlpatterns = [
     path('api/notifications/', views.notifications, name='notifications'),
     path('api/notifications/<int:group_number>/', views.notifications_detail, name='notifications_detail'),
     path('api/duty/', views.duty, name='duty'),
-    path('state/', views.render_state)
+    path('teacher/', views.render_state)
 ]
 
 websocket_urlpatterns = [
