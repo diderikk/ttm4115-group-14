@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Task Form</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		function completeAssist(groupNumber) {
+			fetch(`/api/notifications/`, {
+				method: 'DELETE',
+			})
+				.then(response => {
+					if(response.status == 204){
+						window.location.href = "/state/"
+						window.location.reload()
+					}
+				})
+		}
+	</script>
+</head>
+
+<body class="flex flex-col justify-center items-center w-screen h-screen pb-32">
+	<h1 class="text-5xl font-bold mb-22">Assists Group</h1>
+	<div class="flex justify-center items-center w-full mt-36">
+		<button
+			onclick="completeAssist(0)"
+			class="bg-blue-500 w-32 mx-5 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+			type="submit">
+			Complete
+		</button>
+	</div>
+</body>
+
+
+
+
+</html>

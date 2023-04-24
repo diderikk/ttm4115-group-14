@@ -5,7 +5,6 @@ description = "Web server for TTM4115"
 authors = ["Lukas Neuenschwander <lukas.neu24@gmail.com>"]
 readme = "README.md"
 packages = [
-    {include = "state_machines", from="src"},
     {include = "hermes", from="src"},
 ]
 # sudo apt install libpq-dev
@@ -17,10 +16,9 @@ paho-mqtt = "^1.6.1"
 stmpy = "^0.7.5"
 psycopg2 = "^2.9.6"
 appjar = "^0.94.0"
+channels = "3.0.5"
 
 [tool.poetry.scripts]
-student_machine = 'state_machines.StudentMachine:main'
-teacher_machine = 'state_machines.TeacherMachine:main'
 hermes = 'hermes.manage:main'
 
 [build-system]

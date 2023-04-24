@@ -22,7 +22,7 @@ class StudentMachine:
         t_login = {
             "trigger": "login",
             "source": "login",
-            "function": lambda: self.login("test", "test"),
+            "function": self.login,
         }
 
         # Change 2: effect is removed here, too
