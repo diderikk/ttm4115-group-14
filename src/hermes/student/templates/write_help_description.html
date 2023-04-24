@@ -73,7 +73,8 @@
 			const object = {
 				description
 			};
-			const method = (form.method == "POST") ? "POST" : "PUT"
+			console.log(form.method)
+			const method = (form.method == "post") ? "POST" : "PUT"
 
 			const json = JSON.stringify(object);
 			const response = await fetch(form.action, {

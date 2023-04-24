@@ -9,58 +9,6 @@ from hermes.state_machines.TeacherMachine import t
 from hermes.state_machines.StudentMachine import s
 import json, os, sys, time, uuid
 
-def render_state_teacher(request):
-  state_cookie = request.COOKIES.get("STATE_COOKIE")
-  if state_cookie != None and t.get_machine(state_cookie) != None:
-    state = t.get_machine(state_cookie).state
-    print(state)
-    return render(request, f"{state}.html", get_state_context(request=request, state=state))
-  else:
-    cookie = str(uuid.uuid4())
-    t.add_machine(cookie)
-    time.sleep(0.3)
-    state = t.get_machine(cookie).state
-    response = render(request, f"{state}.html", get_state_context(request=request, state=state))
-    response.set_cookie("STATE_COOKIE", value=cookie, httponly=True)
-    return response
-
-def get_state_context(request, state):
-  if state == 'authentication':
-    return {}
-  elif state == 'progression_view':
-    return progression_view_context()
-  elif state == 'assist_group':
-    return assisting_group_context(request)
-
-def progression_view_context():
-  unit_titles = {}
-  for unit, title in Task.objects.values_list('unit', 'title'):
-        # If the unit is not yet in the dictionary, add it and set the value to an empty list
-    if unit not in unit_titles:
-        unit_titles[unit] = [title]
-    else:
-      unit_titles[unit].append(title)
-      
-  group_task = {}
-  groups = Group.objects.values_list('number', flat=True).distinct()
-  for group in Group.objects.values_list('number', flat=True).distinct():
-    group_task[f"{group}"] = []
-  
-  for group, task in Delivery.objects.values_list('group__number', 'task__title'):
-    group_task[f"{group}"].append(task)
-    
-  notifications = Notifiction.objects.order_by('created_at').values_list('group__number', flat=True)
-  print(notifications)
-      
-  return {'unit_titles': unit_titles, 'group_task': group_task, 'notifications': notifications}
-
-def assisting_group_context(request):
-  user = request.user
-  notification = Notifiction.objects.get(assignee=user)
-  print(notification.group.number)
-  return {'group': notification.group.number}
-
-
 @async_to_sync
 async def send_to_ws(message):
   await send_to_group('teacher', message)
@@ -147,28 +95,6 @@ def notifications_detail(request, group_number):
     return JsonResponse({}, status=204)
   else:
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
-  
-  
-@csrf_exempt
-def login(request):
-  if request.method == 'POST':
-    state_cookie = request.COOKIES.get("STATE_COOKIE")
-    data = json.loads(request.body)
-    email = data.get('email')
-    password = data.get('password')
-    t.trigger_login(uuid=state_cookie, request=request, email=email, password=password)
-    time.sleep(2)
-    return JsonResponse({'success': True}, status=200)
-  else:
-    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
-
-@login_required
-@csrf_exempt
-def duty(request):
-  state_cookie = request.COOKIES.get("STATE_COOKIE")
-  t.trigger(uuid=state_cookie, trigger='duty')
-  time.sleep(0.5)
-  return JsonResponse({'success': True}, status=200)
   
 @login_required
 @csrf_exempt

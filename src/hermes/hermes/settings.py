@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "hermes.api",
     "hermes.student",
+    "hermes.teacher",
     "channels"
 ]
 

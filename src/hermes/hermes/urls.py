@@ -21,4 +21,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("hermes.api.urls")),
     path("", include("hermes.student.urls")),
+    path("", include("hermes.teacher.urls")),
 ]
