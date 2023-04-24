@@ -25,7 +25,10 @@ SECRET_KEY = "django-insecure-!dy&5_jqkmksdhdf(7f6tbc+ko_t6769*v$0^ts8=$a$b!m4hw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['ttm4115.elixirapi.me', 'ttm4115.elixirapi.me:30000', '127.0.0.1']
+
+
+APPEND_SLASH = True
 
 
 # Application definition
@@ -37,7 +40,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "hermes.studentapp"
+    "hermes.studentapp",
+    "hermes.api",
+    "channels"
 ]
 
 MIDDLEWARE = [
@@ -84,6 +89,27 @@ DATABASES = {
         "PORT": "5432",
     },
 }
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
+
+PASSWORD_PBKDF2_ITERATIONS = 100000
+
+AUTHENTICATION_BACKENDS = [
+    'hermes.api.authentication.UserModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+AUTH_USER_MODEL = 'api.User'
+
+ASGI_APPLICATION = "hermes.hermes.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
 
 
 # Password validation
