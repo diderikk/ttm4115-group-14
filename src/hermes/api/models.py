@@ -40,18 +40,6 @@ class Delivery(models.Model):
   
 	def __str__(self):
 		return f'{uuid}'
-
-class Notifiction(models.Model):
-	uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-	description = models.CharField(max_length=255, null=True)
-	created_at = models.DateTimeField(auto_now_add=True)
-	group = models.OneToOneField(Group, on_delete=models.CASCADE, unique=True)
-	task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True)
-  
-	objects = NotificationManager()
-  
-	def __str__(self):
-		return f'{uuid}'
  
 class User(AbstractBaseUser):
 	uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -76,3 +64,16 @@ class User(AbstractBaseUser):
 	def is_staff(self):
 			return self.is_admin
  
+
+class Notifiction(models.Model):
+	uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+	description = models.CharField(max_length=255, null=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	group = models.OneToOneField(Group, on_delete=models.CASCADE, unique=True)
+	task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True)
+	assignee = models.OneToOneField(User, on_delete=models.SET_NULL, default=None, null=True)
+  
+	objects = NotificationManager()
+  
+	def __str__(self):
+		return f'{uuid}'

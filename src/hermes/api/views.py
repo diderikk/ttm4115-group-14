@@ -120,7 +120,10 @@ def notifications(request):
 @csrf_exempt
 @login_required
 def notifications_detail(request, id):
-  if request.method == 'DELETE':
+  if request.method == 'PUT':
+    user = request.user
+    return JsonResponse({}, status=204)
+  elif request.method == 'DELETE':
     try:
       notification = Notifiction.objects.get(pk=id)
       notification.delete()

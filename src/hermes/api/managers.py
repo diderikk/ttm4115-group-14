@@ -27,6 +27,18 @@ class NotificationManager(models.Manager):
     
     notification.save()
     return notification
+  
+  def update_assignee(self, id, user):
+    notification = self.get(pk=id)
+    notification.assignee = user
+    notification.save()
+    
+    return notification
+  
+  def delete_notification_by_assignee(self, assignee):
+    notification = self.get(assignee=assignee)
+    notification.delete()
+    
 
 class TaskManager(models.Manager):
 	def create_task(self, title, description, unit):
