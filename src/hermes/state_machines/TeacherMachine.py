@@ -76,7 +76,7 @@ class TeacherMachine:
         password = args["password"]
         request = args["request"]
         user = authenticate(request, username=email, password=password)
-        if user is not None:
+        if user is not None and user.is_admin:
             login_user(request, user)
             return "progression_view"
         else:
@@ -94,6 +94,10 @@ class TeacherMachine:
 
 
 class TeacherDriver:
+    def __init__(self):
+        self.stm_driver = stmpy.Driver()
+        self.stm_driver.start(keep_active=True)
+
     def trigger(self, uuid, trigger):
         self.stm_driver.send(trigger, uuid)
     
@@ -106,12 +110,7 @@ class TeacherDriver:
         
     def get_machine(self, uuid):
         return self.stm_driver._stms_by_id.get(uuid)
-        
-    def __init__(self):
-        self.stm_driver = stmpy.Driver()
-        self.stm_driver.start(keep_active=True)
-
-
+    
     def stop(self):
         self.mqtt_client.loop_stop()
         self.stm_driver.stop()

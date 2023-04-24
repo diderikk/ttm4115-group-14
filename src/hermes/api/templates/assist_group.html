@@ -13,7 +13,7 @@
 			})
 				.then(response => {
 					if(response.status == 204){
-						window.location.href = "/state/"
+						window.location.href = "/teacher/"
 						window.location.reload()
 					}
 				})
@@ -22,7 +22,7 @@
 </head>
 
 <body class="flex flex-col justify-center items-center w-screen h-screen pb-32">
-	<h1 class="text-5xl font-bold mb-22">Assists Group</h1>
+	<h1 class="text-5xl font-bold mb-22">Assisting Group {{ group }}</h1>
 	<div class="flex justify-center items-center w-full mt-36">
 		<button
 			onclick="completeAssist(0)"

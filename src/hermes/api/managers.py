@@ -18,6 +18,12 @@ class GroupManager(models.Manager):
 		return group
 
 class NotificationManager(models.Manager):
+	def get_notificaiton(self, group):
+		try:
+			return self.get(group=group)
+		except:
+			return None
+
 	def create_notification(self, description, group, task=None):
 		notification = self.model(
 		description=description,
@@ -26,6 +32,12 @@ class NotificationManager(models.Manager):
 		)
 		notification.save()
 		return notification
+
+	def update_notification(self, group, description):
+		notification = self.get(group=group)
+		notification.description = description
+		notification.save()
+
 
 	def update_assignee(self, group_number, user):
 		if group_number == None:
@@ -69,27 +81,33 @@ class TaskManager(models.Manager):
 		task.delete()
   
 class DeliveryManager(models.Manager):
-  def create_delivery(self, file, group, task):
-    delivery = self.model(
-			file=file,
-			group=group,
-			task=task
-		)
-    
-    delivery.save()
-    return delivery
+	def create_delivery(self, file, group, task):
+		prev_delivery = self.get_delivery(task, group)
+		if prev_delivery == None:
+			delivery = self.model(
+				file=file,
+				group=group,
+				task=task
+			)
+
+			delivery.save()
+			return delivery
+		else:
+			prev_delivery.file.delete()
+			prev_delivery.file = file
+			prev_delivery.save()
+			return prev_delivery
   
-  def update_delivery(self, id, file):
-    delivery = self.get(pk=id)
-    delivery.file.save(file.name, file)
-    
-    delivery.save()
-    return delivery
+	def get_delivery(self, task, group):
+		try:
+			return self.get(task=task, group=group)
+		except:
+			return None
   
-  def delete_delivery(self, id):
-    delivery = self.get(pk=id)
-    delivery.file.delete()
-    return delivery.delete()
+	def delete_delivery(self, id):
+		delivery = self.get(pk=id)
+		delivery.file.delete()
+		return delivery.delete()
 
 class UserManager(BaseUserManager):
 	def create_user(self, email, password, is_admin, group):

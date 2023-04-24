@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Student</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		function selectTask(uuid) {
+			console.log("TEST")
+			fetch(`/api/select/`, {
+				method: 'POST',
+			})
+				.then(response => {
+					if (response.status == 204) {
+						window.location.href = `/student/${uuid}`
+					}
+				})
+		}
+	</script>
+</head>
+
+<body class="py-24 flex flex-col justify-start items-center w-screen h-screen overflow-y-auto">
+	<h1 class="text-5xl font-bold mb-24">Units</h1>
+	<div class="flex flex-col justify-start items-center w-full">
+		{% for unit, titles in unit_titles.items %}
+		<div
+			class="flex flex-col items-center justify-start rounded text-xl font-bold w-[30%] h-full bg-gray-300 mb-10 p-5 overflow-y-none">
+			<h2 class="text-2xl">Unit {{ unit }}</h2>
+			{% for title in titles %}
+				<div onclick="selectTask('{{ title.1 }}')" class="flex w-full h-22 my-3 border border-gray-400 p-3 hover hover:bg-gray-400 cursor-pointer rounded">
+					<h2>{{ title.0 }}</h2>
+				</div>
+			{% endfor %}
+		</div>
+		{% endfor %}
+	</div>
+</body>
+
+</html>
