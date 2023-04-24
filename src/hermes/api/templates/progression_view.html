@@ -6,6 +6,19 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		function assistGroup(groupNumber) {
+			fetch(`/api/notifications/${groupNumber}/`, {
+				method: 'PUT',
+			})
+				.then(response => {
+					if(response.status == 204){
+						window.location.href = "/state/"
+						window.location.reload()
+					}
+				})
+		}
+	</script>
 </head>
 
 <body class="py-24 flex flex-col justify-start items-center w-screen h-screen overflow-y-auto">
@@ -50,7 +63,7 @@
 		<h3 class="text-lg font-bold underline">Waiting List:</h3>
 		<div class="w-full flex flex-col items-center">
 			{% for group in notifications %}
-				<div class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
+				<div onclick="assistGroup({{ group }})" class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
 			{% endfor %}
 		</div>
 	</div>

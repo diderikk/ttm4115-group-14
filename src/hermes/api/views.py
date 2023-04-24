@@ -114,26 +114,29 @@ def notifications(request):
     return JsonResponse(serialize_notification(notification), status=201)
   elif request.method == 'GET':
     return JsonResponse(list(map(serialize_notification, Notifiction.objects.all().order_by('created_at'))), status=200, safe=False)
+  elif request.method == 'DELETE':
+    user = request.user
+    Notifiction.objects.delete_notification_by_assignee(assignee=user)
+    t.trigger('complete_help')
+      
+    time.sleep(0.5)
+    return JsonResponse({}, status=204)
   else:
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
   
 @csrf_exempt
 @login_required
-def notifications_detail(request, id):
+def notifications_detail(request, group_number):
+  user = request.user
   if request.method == 'PUT':
-    user = request.user
+    Notifiction.objects.update_assignee(group_number=group_number, user=user)
+    t.trigger('assistance_notification')
+    time.sleep(0.5)
     return JsonResponse({}, status=204)
-  elif request.method == 'DELETE':
-    try:
-      notification = Notifiction.objects.get(pk=id)
-      notification.delete()
-      return JsonResponse({}, status=204)
-    except Notifiction.DoesNotExist:
-      return JsonResponse({'error': 'Not found'}, status=404) 
-    
   else:
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
-
+  
+  
 @csrf_exempt
 def login(request):
   if request.method == 'POST':

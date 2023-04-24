@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-!dy&5_jqkmksdhdf(7f6tbc+ko_t6769*v$0^ts8=$a$b!m4hw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['elixirapi.me', 'elixirapi.me:30000', '127.0.0.1']
+ALLOWED_HOSTS = ['ttm4115.elixirapi.me', 'ttm4115.elixirapi.me:30000', '127.0.0.1']
 
 
 APPEND_SLASH = True

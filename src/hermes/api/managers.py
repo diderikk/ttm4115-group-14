@@ -18,26 +18,30 @@ class GroupManager(models.Manager):
 		return group
 
 class NotificationManager(models.Manager):
-  def create_notification(self, description, group, task=None):
-    notification = self.model(
-			description=description,
-			group=group,
-			task=task
+	def create_notification(self, description, group, task=None):
+		notification = self.model(
+		description=description,
+		group=group,
+		task=task
 		)
-    
-    notification.save()
-    return notification
-  
-  def update_assignee(self, id, user):
-    notification = self.get(pk=id)
-    notification.assignee = user
-    notification.save()
-    
-    return notification
-  
-  def delete_notification_by_assignee(self, assignee):
-    notification = self.get(assignee=assignee)
-    notification.delete()
+		notification.save()
+		return notification
+
+	def update_assignee(self, group_number, user):
+		if group_number == None:
+			notification = self.get(assignee=user)
+			notification.assignee = None
+			notification.save()
+		else:
+			notification = self.get(group__number=group_number)
+			notification.assignee = user
+			notification.save()
+
+		return True
+
+	def delete_notification_by_assignee(self, assignee):
+		notification = self.get(assignee=assignee)
+		notification.delete()
     
 
 class TaskManager(models.Manager):
