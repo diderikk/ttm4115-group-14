@@ -18,4 +18,3 @@ def logout(arg, **args):
 	request = args["request"]
 	logout_user(request)
  
-def 
