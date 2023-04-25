@@ -12,8 +12,8 @@
 				method: 'PUT',
 			})
 				.then(response => {
-					if(response.status == 204){
-						window.location.href = "/state/"
+					if (response.status == 204) {
+						window.location.href = "/teacher/"
 						window.location.reload()
 					}
 				})
@@ -59,11 +59,13 @@
 		</div>
 		{% endfor %}
 	</div>
-	<div class="flex flex-col py-4 items-center absolute inset-y-0 right-[15%] my-auto w-52 min-h-[20vh] h-fit bg-gray-300 rounded">
-		<h3 class="text-lg font-bold underline">Waiting List:</h3>
-		<div class="w-full flex flex-col items-center">
+	<div
+		class="flex flex-col py-4 items-center absolute inset-y-0 right-[15%] my-auto w-52 min-h-[20vh] h-fit bg-gray-300 rounded">
+		<h3 class="text-lg font-bold underline">Assist List:</h3>
+		<div id="assist" class="w-full flex flex-col items-center">
 			{% for group in notifications %}
-				<div onclick="assistGroup({{ group }})" class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
+			<div onclick="assistGroup({{ group }})"
+				class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
 			{% endfor %}
 		</div>
 	</div>
@@ -76,12 +78,14 @@
 			method: 'POST',
 		})
 			.then(response => {
-				if(response.status == 200){
-					window.location.href = "/state/"
+				if (response.status == 200) {
+					window.location.href = "/teacher/"
 					window.location.reload()
 				}
 			})
 	})
+
+
 
 	const socket = new WebSocket('ws://127.0.0.1:8000/ws/teacher/');
 
@@ -91,8 +95,18 @@
 
 	socket.addEventListener('message', function (event) {
 		broadcast = JSON.parse(JSON.parse(event.data)["broadcast"])
-		title = broadcast.title.replaceAll(' ', '-').toLowerCase()
-		document.getElementById(`${broadcast.unit}_${broadcast.group}_${title}`).innerHTML = "X"
+		if ("id" in broadcast) {
+			console.log(broadcast)
+			const div = document.createElement("div")
+			div.className = "text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer"
+			div.onclick = function() { assistGroup(broadcast.group) }
+			div.innerHTML = broadcast.group
+			document.getElementById("assist").appendChild(div)
+		}
+		else {
+			title = broadcast.title.replaceAll(' ', '-').toLowerCase()
+			document.getElementById(`${broadcast.unit}_${broadcast.group}_${title}`).innerHTML = "X"
+		}
 	});
 
 	socket.addEventListener('close', function (event) {

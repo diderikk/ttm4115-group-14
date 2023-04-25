@@ -1,4 +1,3 @@
-from django.contrib.auth import authenticate, login as login_user
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, QueryDict
 from django.shortcuts import render
@@ -7,51 +6,8 @@ from asgiref.sync import async_to_sync, sync_to_async
 from .models import User, Group, Task, Delivery, Notifiction
 from .websocket import send_to_group
 from hermes.state_machines.TeacherMachine import t
-import json, os, sys, time
-
-def test_template(request):
-  return render(request, "delivery.html")
-
-def test_task_form(request):
-  return render(request, "task_form.html")
-
-def render_state(request):
-  state = t.student_machine.state
-  return render(request, f"{state}.html", get_state_context(request=request, state=state))
-
-def get_state_context(request, state):
-  if state == 'authentication':
-    return {}
-  elif state == 'progression_view':
-    return progression_view_context()
-
-def progression_view_context():
-  unit_titles = {}
-  for unit, title in Task.objects.values_list('unit', 'title'):
-        # If the unit is not yet in the dictionary, add it and set the value to an empty list
-    if unit not in unit_titles:
-        unit_titles[unit] = [title]
-    else:
-      unit_titles[unit].append(title)
-      
-  group_task = {}
-  groups = Group.objects.values_list('number', flat=True).distinct()
-  for group in Group.objects.values_list('number', flat=True).distinct():
-    group_task[f"{group}"] = []
-  
-  for group, task in Delivery.objects.values_list('group__number', 'task__title'):
-    group_task[f"{group}"].append(task)
-    
-  notifications = Notifiction.objects.order_by('created_at').values_list('group__number', flat=True)
-  print(notifications)
-      
-  return {'unit_titles': unit_titles, 'group_task': group_task, 'notifications': notifications}
-
-
-async def test_http_to_websocket(request):
-  await send_to_group('teacher', json.dumps({'unit': 1, 'group': 1, 'title': 'Title 2'}))
-  return JsonResponse({'test': 'test'}, status=200)
-
+from hermes.state_machines.StudentMachine import s
+import json, os, sys, time, uuid
 
 @async_to_sync
 async def send_to_ws(message):
@@ -60,13 +16,18 @@ async def send_to_ws(message):
 @login_required(login_url='/login/')
 @csrf_exempt
 def deliver(request):
-  if request.method == 'POST' and request.FILES['myfile']:
-    file = request.FILES['myfile']
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  if request.method == 'POST':
+    f = request.FILES["file"]
+    print(f)
+    task_id = request.POST["id"]
     group = request.user.group
-    task = Task.objects.get(pk="1d886973-ed06-44bb-8628-5c1d6f011fc1") # TODO: read from request
-    delivery = Delivery.objects.create_delivery(file=file, group=group, task=task)
+    task = Task.objects.get(pk=task_id) # TODO: read from request
+    delivery = Delivery.objects.create_delivery(file=f, group=group, task=task)
     message = json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title})
     send_to_ws(message)
+    time.sleep(0.3)
+    s.trigger(uuid=state_cookie, trigger='back')
     return JsonResponse({'id': delivery.uuid}, status=201)
   elif request.method == 'GET':
     # deliveries = await get_all_deliveries()
@@ -77,21 +38,7 @@ def deliver(request):
 @csrf_exempt
 @login_required
 def deliver_detail(request, id):
-  if request.method == "GET":
-    try:
-      delivery = Delivery.objects.get(pk=id)
-      return JsonResponse(serialize_delivery(delivery), status=200)
-    except Task.DoesNotExist:
-      return JsonResponse({'error': f'Delivery with id: {id} does not exist'}, status=404)
-  elif request.method == 'PUT':
-    data = json.loads(request.body)
-    file = data['myfile']
-    try: 
-      delivery = Delivery.objects.update_delivery(id, file=file)
-      return JsonResponse(serialize_task(task), status=200)
-    except Task.DoesNotExist:
-      return JsonResponse({'error': f'Delivery with id: {id} does not exist'}, status=404)
-  elif request.method == 'DELETE':
+  if request.method == 'DELETE':
     try: 
       Delivery.objects.delete_delivery(id)
       return JsonResponse({}, status=204)
@@ -103,6 +50,7 @@ def deliver_detail(request, id):
 @csrf_exempt
 @login_required
 def notifications(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'POST':
     data = json.loads(request.body)
     description = data.get("description")
@@ -111,54 +59,47 @@ def notifications(request):
     notification = Notifiction.objects.create_notification(description=description, group=group)
     message = json.dumps({'id': str(notification.uuid), 'description': notification.description, 'group': group.number})
     send_to_ws(message)
+    s.trigger(uuid=state_cookie, trigger='send_notification')
+    time.sleep(0.5)
     return JsonResponse(serialize_notification(notification), status=201)
+  elif request.method == 'PUT':
+    data = json.loads(request.body)
+    description = data.get("description")
+    group = request.user.group
+    Notifiction.objects.update_notification(group, description)
+    s.trigger(uuid=state_cookie, trigger='send_notification')
+    time.sleep(0.5)
+    return JsonResponse({}, status=204)
   elif request.method == 'GET':
     return JsonResponse(list(map(serialize_notification, Notifiction.objects.all().order_by('created_at'))), status=200, safe=False)
   elif request.method == 'DELETE':
     user = request.user
     Notifiction.objects.delete_notification_by_assignee(assignee=user)
-    t.trigger('complete_help')
+    t.trigger(uuid=state_cookie, trigger='complete_help')
       
     time.sleep(0.5)
     return JsonResponse({}, status=204)
   else:
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
   
+  
 @csrf_exempt
 @login_required
 def notifications_detail(request, group_number):
-  user = request.user
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'PUT':
+    user = request.user
     Notifiction.objects.update_assignee(group_number=group_number, user=user)
-    t.trigger('assistance_notification')
+    t.trigger(uuid=state_cookie, trigger='assistance_notification')
     time.sleep(0.5)
     return JsonResponse({}, status=204)
   else:
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
   
-  
-@csrf_exempt
-def login(request):
-  if request.method == 'POST':
-    data = json.loads(request.body)
-    email = data.get('email')
-    password = data.get('password')
-    t.trigger_login(request=request, email=email, password=password)
-    time.sleep(2)
-    return JsonResponse({'success': True}, status=200)
-  else:
-    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
-
-@login_required
-@csrf_exempt
-def duty(request):
-    t.trigger('duty')
-    time.sleep(0.5)
-    return JsonResponse({'success': True}, status=200)
-  
 @login_required
 @csrf_exempt
 def tasks(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'POST':
     data = json.loads(request.body)
     title = data.get('title')
@@ -166,39 +107,11 @@ def tasks(request):
     unit = data.get('unit')
     # TODO: Move to state machine?
     task = Task.objects.create_task(title=title, description=description, unit=unit)
-    t.trigger('task_published')
+    t.trigger(uuid=state_cookie, trigger='task_published')
     time.sleep(0.5)
     return JsonResponse(serialize_task(task), status=201)
   elif request.method == 'GET':
     return JsonResponse(list(map(serialize_task, Task.objects.all())), status=200, safe=False)
-  else:
-    return JsonResponse({'error': 'Invalid request method.'}, status=405)
-  
-@login_required
-@csrf_exempt
-def task_detail(request, id):
-  if request.method == 'GET':
-    try:
-      task = Task.objects.get(pk=id)
-      return JsonResponse(serialize_task(task), status=200)
-    except Task.DoesNotExist:
-      return JsonResponse({'error': f'Task with id: {id} does not exist'}, status=404)
-  elif request.method == 'PUT':
-    data = json.loads(request.body)
-    title = data.get('title')
-    description = data.get('description')
-    unit = data.get('unit')
-    try: 
-      task = Task.objects.update_task(title=title, description=description, unit=unit, id=id)
-      return JsonResponse(serialize_task(task), status=200)
-    except Task.DoesNotExist:
-      return JsonResponse({'error': f'Task with id: {id} does not exist'}, status=404)
-  elif request.method == 'DELETE':
-    try: 
-      Task.objects.delete_task(id)
-      return JsonResponse({}, status=204)
-    except Task.DoesNotExist:
-      return JsonResponse({'error': f'Task with id: {id} does not exist'}, status=404)
   else:
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
   

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Student</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		function goBack() {
+			fetch(`/api/back/`, {
+				method: 'POST',
+			})
+				.then(response => {
+					if (response.status == 204) {
+						window.location.href = `/student/`
+					}
+				})
+		}
+
+		function ask() {
+			fetch(`/api/ask/`, {
+				method: 'POST',
+			})
+				.then(response => {
+					if (response.status == 204) {
+						window.location.reload()
+					}
+				})
+		}
+	</script>
+</head>
+
+<body class="py-24 flex flex-col justify-between items-center w-screen h-screen overflow-y-auto">
+	<div class="flex flex-col items-center w-full">
+		<div class="flex mb-24 items-center justify-evenly w-[80%]">
+			<svg onclick="goBack()" class="w-16 border rounded-xl cursor-pointer hover:bg-gray-100" id="Layer_1"
+				style="enable-background:new 0 0 512 512;" version="1.1" viewBox="0 0 512 512" width="512px"
+				xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+				<polygon points="352,128.4 319.7,96 160,256 160,256 160,256 319.7,416 352,383.6 224.7,256 " />
+			</svg>
+			<h1 class="text-5xl font-bold">{{ task.title }}</h1>
+			<svg onclick="ask()" class="w-16 border rounded-xl cursor-pointer hover:bg-gray-100" fill="none"  stroke-width="2" viewBox="0 0 24 24" width="24"
+				xmlns="http://www.w3.org/2000/svg">
+				<path
+					d="M7.90039 8.07954C7.90039 3.30678 15.4004 3.30682 15.4004 8.07955C15.4004 11.4886 11.9913 10.8067 11.9913 14.8976"
+					stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+				<path d="M12 19.01L12.01 18.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
+		</div>
+		<p class="text-xl">{{ task.description }}</p>
+	</div>
+	<div class="flex flex-col justify-start items-center w-full">
+		<form id="update-form" method="POST" enctype="multipart/form-data" action="{% url 'deliver' %}"
+			class="flex flex-col items-center justify-center w-fit">
+			<label class="block mb-2 text-lg font-medium text-slate-900 " for="large_size">Delivery</label>
+			{% if delivery %}
+			<div class="flex">
+				<p class="font-bold mr-4">Delivered:</p> {{ delivery.file.name }}
+			</div>
+			{% endif %}
+			<input class="block my-7 w-full text-lg text-gray-900 border border-gray-300 rounded-lg cursor-pointer"
+				id="large_size" type="file" name="file">
+			<input id="task-id" class="hidden" value="{{task.uuid}}" name="id">
+			<button
+				class="bg-blue-500 w-32 mx-5 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+				type="submit">
+				Complete
+			</button>
+		</form>
+	</div>
+	<script>
+		const form = document.getElementById('update-form');
+		const fileInput = document.getElementById('large_size');
+		const taskIdInput = document.getElementById('task-id');
+		const submitBtn = document.getElementById('submit-btn');
+
+		form.addEventListener('submit', (e) => {
+			e.preventDefault(); // prevent the form from submitting normally
+
+			const formData = new FormData(); // create a new FormData object
+			formData.append('file', fileInput.files[0]); // add the file to the form data
+			formData.append('id', taskIdInput.value); // add the task ID to the form data
+
+			// send the form data to the server using fetch()
+			fetch('{% url "deliver" %}', {
+				method: 'POST',
+				body: formData
+			})
+				.then(response => {
+					if (response.status == 201) {
+						window.location.href = "/student/"
+					}
+				})
+				.catch(error => {
+					// handle any errors that occur during the fetch request
+					console.error(error);
+				});
+		});
+	</script>
+</body>
+
+</html>

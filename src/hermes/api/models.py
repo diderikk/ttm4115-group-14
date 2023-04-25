@@ -25,6 +25,10 @@ class Task(models.Model):
  
 	REQUIRED_FIELDS = ['title', 'description', 'unit']
  
+	class Meta:
+		unique_together = [('title', 'uuid')]
+
+ 
 	objects = TaskManager()
  
 	def __str__(self):

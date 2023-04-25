@@ -40,8 +40,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "hermes.studentapp",
     "hermes.api",
+    "hermes.student",
+    "hermes.teacher",
     "channels"
 ]
 
