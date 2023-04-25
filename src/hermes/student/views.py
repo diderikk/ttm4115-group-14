@@ -41,17 +41,25 @@ def render_task_state_student(request, id):
 
 def get_state_context(request, state):
     if state == 'task_select':
-        return task_select_context()
+        return task_select_context(request=request)
 
 
-def task_select_context():
+def task_select_context(request):
+    group = request.user.group
+    delivered_tasks = Delivery.objects.filter(group=group).values_list('task__title', 'task__unit')
     unit_titles = {}
     for unit, title, uuid in Task.objects.values_list('unit', 'title', 'uuid'):
+        delivered = (title, unit) in delivered_tasks
         if unit not in unit_titles:
-            unit_titles[unit] = [(title, uuid)]
+            unit_titles[unit] = [(title, uuid, delivered)]
         else:
-            unit_titles[unit].append((title, uuid))
-
+            unit_titles[unit].append((title, uuid, delivered))
+            
+    for unit, titles in unit_titles.items():
+        all_delivered = all(delivered for _, _, delivered in titles)
+        unit_titles[unit] = (unit_titles[unit], all_delivered)
+            
+        
     return {'unit_titles': unit_titles}
 
 
