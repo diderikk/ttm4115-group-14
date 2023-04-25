@@ -70,8 +70,8 @@ def login(request):
         data = json.loads(request.body)
         email = data.get('email')
         password = data.get('password')
-        s.trigger_login(uuid=state_cookie, request=request,
-                        email=email, password=password)
+        s.trigger(trigger='login', uuid=state_cookie, kwargs={
+                             'request': request, 'email': email, 'password': password})
         time.sleep(2)
         return JsonResponse({'success': True}, status=200)
     else:
@@ -108,3 +108,21 @@ def cancel(request):
   s.trigger(uuid=state_cookie, trigger='cancel')
   time.sleep(0.5)
   return JsonResponse({}, status=204)
+
+@csrf_exempt
+@login_required  
+def cancel(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  s.trigger(uuid=state_cookie, trigger='cancel')
+  time.sleep(0.5)
+  return JsonResponse({}, status=204)
+
+@csrf_exempt
+@login_required  
+def logout(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  s.trigger(trigger='logout', uuid=state_cookie, kwargs={'request': request})
+  time.sleep(0.5)
+  response = JsonResponse({}, status=204)
+  response.delete_cookie('STATE_COOKIE')
+  return response

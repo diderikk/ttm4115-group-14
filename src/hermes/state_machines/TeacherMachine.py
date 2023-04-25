@@ -1,10 +1,8 @@
-# import paho.mqtt.client as mqtt
-from django.contrib.auth import authenticate, login as login_user
-from hermes.api.models import Notifiction
 import stmpy
 import logging
 from threading import Thread
 import json
+from .TeacherMachineLogic import login as login_, logout as logout_, complete_help
 
 class TeacherMachine:
     def __init__(self, uuid):
@@ -15,7 +13,7 @@ class TeacherMachine:
         t_login = {
             "trigger": "login",
             "source": "authentication",
-            "function": self.login,
+            "function": login_,
         }
 
         # Change 2: effect is removed here, too
@@ -29,6 +27,13 @@ class TeacherMachine:
             "trigger": "task_published",
             "source": "publish_task",
             "target": "progression_view",
+        }
+        
+        t_logout = {
+            "trigger": "logout",
+            "source": "progression_view",
+            "target": "authentication",
+            "effect": logout_
         }
         
         t_cancel = {
@@ -46,7 +51,7 @@ class TeacherMachine:
         t_complete_help = {
             "trigger": "complete_help",
             "source": "assist_group",
-            "function": lambda: self.complete_help(),
+            "function": complete_help,
         }
 
         authentication = {
@@ -78,24 +83,6 @@ class TeacherMachine:
             obj=self,
         )
 
-    def login(self, arg, **args) -> str:
-        email = args["email"]
-        password = args["password"]
-        request = args["request"]
-        user = authenticate(request, username=email, password=password)
-        if user is not None and user.is_admin:
-            login_user(request, user)
-            return "progression_view"
-        else:
-            return "authentication"
-
-    def complete_help(self) -> str:
-        notifications = Notifiction.objects.all().filter(assignee=None)
-        if len(notifications) == 0:
-            return "progression_view"
-        else:
-            return "assist_group"
-
     def print_state(self, name):
         print(f"ENTERED STATE {name}")
 
@@ -105,11 +92,8 @@ class TeacherDriver:
         self.stm_driver = stmpy.Driver()
         self.stm_driver.start(keep_active=True)
 
-    def trigger(self, uuid, trigger):
-        self.stm_driver.send(trigger, uuid)
-    
-    def trigger_login(self, uuid, request, email, password):
-        self.stm_driver.send("login", uuid, [''], {'request': request, 'email': email, 'password': password})
+    def trigger(self, uuid, trigger, kwargs={}):
+        self.stm_driver.send(trigger, uuid, [''], kwargs=kwargs)
 
     def add_machine(self, uuid):
         student_machine = TeacherMachine(uuid=uuid).stm
