@@ -4,31 +4,25 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from asgiref.sync import async_to_sync, sync_to_async
 from .models import User, Group, Task, Delivery, Notifiction
-from .websocket import send_to_group
 from hermes.state_machines.TeacherMachine import t
 from hermes.state_machines.StudentMachine import s
 import json, os, sys, time, uuid
 
-@async_to_sync
-async def send_to_ws(message):
-  await send_to_group('teacher', message)
   
 @login_required(login_url='/login/')
 @csrf_exempt
 def deliver(request):
   state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'POST':
+    # File closed when trying to move it in the state machine
     f = request.FILES["file"]
-    print(f)
     task_id = request.POST["id"]
     group = request.user.group
     task = Task.objects.get(pk=task_id)
     delivery = Delivery.objects.create_delivery(file=f, group=group, task=task)
-    message = json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title})
-    send_to_ws(message)
-    time.sleep(0.3)
-    s.trigger(uuid=state_cookie, trigger='back')
-    return JsonResponse({'id': delivery.uuid}, status=201)
+    time.sleep(0.5)
+    s.trigger(uuid=state_cookie, trigger='complete', kwargs={'request': request, 'task': task})
+    return JsonResponse({}, status=201)
   elif request.method == 'GET':
     # deliveries = await get_all_deliveries()
     return JsonResponse(list(map(serialize_delivery, Delivery.objects.all())), status=200, safe=False)
@@ -51,32 +45,15 @@ def deliver_detail(request, id):
 @login_required
 def notifications(request):
   state_cookie = request.COOKIES.get("STATE_COOKIE")
-  if request.method == 'POST':
-    data = json.loads(request.body)
-    description = data.get("description")
-    group = request.user.group
-    # TODO: Move to state machine?
-    notification = Notifiction.objects.create_notification(description=description, group=group)
-    message = json.dumps({'id': str(notification.uuid), 'description': notification.description, 'group': group.number})
-    send_to_ws(message)
-    s.trigger(uuid=state_cookie, trigger='send_notification')
+  if request.method == 'POST' or request.method == 'PUT':
+    s.trigger(uuid=state_cookie, trigger='send_notification', kwargs={'request': request})
     time.sleep(0.5)
-    return JsonResponse(serialize_notification(notification), status=201)
-  elif request.method == 'PUT':
-    data = json.loads(request.body)
-    description = data.get("description")
-    group = request.user.group
-    Notifiction.objects.update_notification(group, description)
-    s.trigger(uuid=state_cookie, trigger='send_notification')
-    time.sleep(0.5)
-    return JsonResponse({}, status=204)
+    status = 201 if request.method == 'POST' else 204
+    return JsonResponse({}, status=status)
   elif request.method == 'GET':
     return JsonResponse(list(map(serialize_notification, Notifiction.objects.all().order_by('created_at'))), status=200, safe=False)
   elif request.method == 'DELETE':
-    user = request.user
-    Notifiction.objects.delete_notification_by_assignee(assignee=user)
-    t.trigger(uuid=state_cookie, trigger='complete_help')
-      
+    t.trigger(uuid=state_cookie, trigger='complete_help', kwargs={'request': request})
     time.sleep(0.5)
     return JsonResponse({}, status=204)
   else:
@@ -88,8 +65,6 @@ def notifications(request):
 def notifications_detail(request, group_number):
   state_cookie = request.COOKIES.get("STATE_COOKIE")
   if request.method == 'PUT':
-    user = request.user
-    Notifiction.objects.update_assignee(group_number=group_number, user=user)
     t.trigger(uuid=state_cookie, trigger='assistance_notification')
     time.sleep(0.5)
     return JsonResponse({}, status=204)

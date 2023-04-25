@@ -2,7 +2,7 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .TeacherMachineLogic import login as login_, logout as logout_, complete_help
+from .TeacherMachineLogic import login as login_, logout, complete_help
 
 class TeacherMachine:
     def __init__(self, uuid):
@@ -32,8 +32,7 @@ class TeacherMachine:
         t_logout = {
             "trigger": "logout",
             "source": "progression_view",
-            "target": "authentication",
-            "effect": logout_
+            "function": logout
         }
         
         t_cancel = {
@@ -73,6 +72,7 @@ class TeacherMachine:
             transitions=[
                 t_initial,
                 t_login,
+                t_logout,
                 t_duty,
                 t_cancel,
                 t_published_task,

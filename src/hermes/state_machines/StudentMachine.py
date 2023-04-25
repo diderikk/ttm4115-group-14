@@ -2,7 +2,8 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .StudentMachineLogic import login as login_, logout as logout_
+from .StudentMachineLogic import login as login_, logout, post_notification, complete_delivery
+
 
 class StudentMachine:
     def __init__(self, uuid):
@@ -22,12 +23,17 @@ class StudentMachine:
 
         t_back = {"trigger": "back",
                   "source": "task_overview", "target": "task_select"}
-        
+
+        t_complete = {
+            "trigger": "complete",
+            "source": "task_overview",
+            "function": complete_delivery
+        }
+
         t_logout = {
             "trigger": "logout",
             "source": "task_select",
-            "target": "login",
-            "effect": logout_
+            "function": logout
         }
 
         t_ask = {
@@ -35,23 +41,23 @@ class StudentMachine:
             "source": "task_overview",
             "target": "write_help_description",
         }
-        
+
         t_ask_tech = {
             "trigger": "ask",
             "source": "task_select",
             "target": "write_technical_error_description",
         }
-        
+
         t_cancel_tech = {
             "trigger": "cancel",
             "source": "write_technical_error_description",
             "target": "task_select",
         }
-        
+
         t_send_notification_tech = {
-            "trigger": "t_send_notification_tech",
+            "trigger": "send_notification",
             "source": "write_technical_error_description",
-            "target": "task_select",
+            "function": post_notification
         }
 
         t_cancel = {
@@ -63,7 +69,7 @@ class StudentMachine:
         t_send_notification = {
             "trigger": "send_notification",
             "source": "write_help_description",
-            "target": "task_overview",
+            "function": post_notification
         }
 
         task_select = {"name": "task_select",
@@ -86,13 +92,14 @@ class StudentMachine:
             "entry": 'print_state("write_technical_error_description")',
         }
 
-
         self.stm = stmpy.Machine(
             name=uuid,
             transitions=[
                 t_initial,
                 t_login,
+                t_logout,
                 t_task_selected,
+                t_complete,
                 t_back,
                 t_cancel_tech,
                 t_ask_tech,

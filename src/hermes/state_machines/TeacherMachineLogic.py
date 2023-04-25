@@ -15,10 +15,16 @@ def login(arg, **args) -> str:
 def logout(arg, **args):
 		request = args["request"]
 		logout_user(request)
+		return "authentication"
 
-def complete_help() -> str:
-		notifications = Notifiction.objects.all().filter(assignee=None)
-		if len(notifications) == 0:
-				return "progression_view"
-		else:
-				return "assist_group"
+def complete_help(arg, **args):
+	request = args["request"]
+	user = request.user
+	Notifiction.objects.delete_notification_by_assignee(assignee=user)
+	return "progression_view"
+
+
+def assistance_notification(arg, **args):
+	user = request.user
+	Notifiction.objects.update_assignee(group_number=group_number, user=user)
+	return "assist_group"
