@@ -6,6 +6,18 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="https://cdn.tailwindcss.com"></script>
+	<script>
+		function cancel() {
+			fetch(`/api/tcancel/`, {
+				method: 'POST',
+			})
+				.then(response => {
+					if (response.status == 204) {
+						window.location.reload()
+					}
+				})
+		}
+	</script>
 </head>
 
 <body class="flex flex-col justify-center items-center w-screen h-screen">
@@ -38,11 +50,16 @@
 					id="description" type="text" min="0" required rows="6"></textarea>
 			</div>
 			<div class="flex items-center justify-center w-full">
+				<button onclick="cancel()"
+				class="bg-red-500 mr-1 w-full hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+				Cancel
+			</button>
 				<button
-					class="bg-blue-500 w-full hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+					class="bg-blue-500 ml-1 w-full hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
 					type="submit">
 					Post
 				</button>
+				
 			</div>
 		</form>
 	</div>

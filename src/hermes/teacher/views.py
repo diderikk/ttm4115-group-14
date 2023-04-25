@@ -69,6 +69,14 @@ def duty(request):
   time.sleep(0.5)
   return JsonResponse({'success': True}, status=200)
 
+@login_required
+@csrf_exempt
+def cancel(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  t.trigger(uuid=state_cookie, trigger='cancel')
+  time.sleep(0.5)
+  return JsonResponse({}, status=204)
+
 
 @csrf_exempt
 def login(request):

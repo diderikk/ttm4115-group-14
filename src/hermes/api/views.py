@@ -22,7 +22,7 @@ def deliver(request):
     print(f)
     task_id = request.POST["id"]
     group = request.user.group
-    task = Task.objects.get(pk=task_id) # TODO: read from request
+    task = Task.objects.get(pk=task_id)
     delivery = Delivery.objects.create_delivery(file=f, group=group, task=task)
     message = json.dumps({'unit': task.unit, 'group': group.number, 'title': task.title})
     send_to_ws(message)
