@@ -30,6 +30,12 @@ class TeacherMachine:
             "source": "publish_task",
             "target": "progression_view",
         }
+        
+        t_cancel = {
+            "trigger": "cancel",
+            "source": "publish_task",
+            "target": "progression_view",
+        }
 
         t_assistance_notification = {
             "trigger": "assistance_notification",
@@ -63,6 +69,7 @@ class TeacherMachine:
                 t_initial,
                 t_login,
                 t_duty,
+                t_cancel,
                 t_published_task,
                 t_assistance_notification,
                 t_complete_help,
