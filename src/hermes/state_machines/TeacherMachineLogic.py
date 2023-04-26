@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login as login_user, logout as logout_user
-from hermes.api.models import Notifiction
+from hermes.api.models import Notifiction, Task
+import json
 
 def login(arg, **args) -> str:
 		email = args["email"]
@@ -25,6 +26,19 @@ def complete_help(arg, **args):
 
 
 def assistance_notification(arg, **args):
+	request = args["request"]
+	group_number = args["group_number"]
 	user = request.user
 	Notifiction.objects.update_assignee(group_number=group_number, user=user)
 	return "assist_group"
+
+
+def task_published(arg, **args):
+	request = args["request"]
+	data = json.loads(request.body)
+	title = data.get('title')
+	description = data.get('description')
+	unit = data.get('unit')
+	task = Task.objects.create_task(
+			title=title, description=description, unit=unit)
+	return "progression_view"

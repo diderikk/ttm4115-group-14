@@ -12,7 +12,6 @@ def login(arg, **args) -> str:
 	email = args["email"]
 	password = args["password"]
 	request = args["request"]
-	print(email)
 	user = authenticate(request, username=email, password=password)
 
 	if user is not None:

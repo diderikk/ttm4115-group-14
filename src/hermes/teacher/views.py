@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout as logout_user
 from django.http import JsonResponse, QueryDict
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -11,12 +12,13 @@ import time, json
 
 def render_state_teacher(request):
   state_cookie = request.COOKIES.get("STATE_COOKIE")
+  if state_cookie != None and "TEACHER" not in state_cookie:
+    t.pop_machine(state_cookie)
   if state_cookie != None and t.get_machine(state_cookie) != None:
     state = t.get_machine(state_cookie).state
-    print(state)
     return render(request, f"{state}.html", get_state_context(request=request, state=state))
   else:
-    cookie = str(uuid4())
+    cookie = "TEACHER" + str(uuid4())
     t.add_machine(cookie)
     time.sleep(0.3)
     state = t.get_machine(cookie).state
@@ -50,14 +52,12 @@ def progression_view_context():
     group_task[f"{group}"].append((task_title, task_unit))
     
   notifications = Notifiction.objects.order_by('created_at').values_list('group__number', flat=True)
-  print(notifications)
       
   return {'unit_titles': unit_titles, 'group_task': group_task, 'notifications': notifications}
 
 def assisting_group_context(request):
   user = request.user
   notification = Notifiction.objects.get(assignee=user)
-  print(notification.group.number)
   return {'group': notification.group.number}
 
 

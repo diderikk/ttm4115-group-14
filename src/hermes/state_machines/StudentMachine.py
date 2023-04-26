@@ -136,6 +136,9 @@ class StudentDriver:
 
     def get_machine(self, uuid):
         return self.stm_driver._stms_by_id.get(uuid)
+    
+    def pop_machine(self, uuid):
+        self.stm_driver._terminate_stm(uuid)
 
     def stop(self):
         self.mqtt_client.loop_stop()

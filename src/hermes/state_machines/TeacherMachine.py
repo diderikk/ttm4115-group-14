@@ -2,7 +2,7 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .TeacherMachineLogic import login as login_, logout, complete_help
+from .TeacherMachineLogic import login as login_, logout, complete_help, assistance_notification, task_published
 
 class TeacherMachine:
     def __init__(self, uuid):
@@ -26,7 +26,7 @@ class TeacherMachine:
         t_published_task = {
             "trigger": "task_published",
             "source": "publish_task",
-            "target": "progression_view",
+            "function": task_published,
         }
         
         t_logout = {
@@ -44,7 +44,7 @@ class TeacherMachine:
         t_assistance_notification = {
             "trigger": "assistance_notification",
             "source": "progression_view",
-            "target": "assist_group",
+            "function": assistance_notification,
         }
 
         t_complete_help = {
@@ -101,6 +101,9 @@ class TeacherDriver:
         
     def get_machine(self, uuid):
         return self.stm_driver._stms_by_id.get(uuid)
+    
+    def pop_machine(self, uuid):
+        self.stm_driver._terminate_stm(uuid)
     
     def stop(self):
         self.mqtt_client.loop_stop()
