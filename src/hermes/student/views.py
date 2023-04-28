@@ -2,7 +2,6 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, QueryDict
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
-from asgiref.sync import async_to_sync, sync_to_async
 from hermes.state_machines.StudentMachine import s
 from hermes.api.models import Task, Delivery, Notifiction
 from uuid import uuid4
@@ -36,7 +35,7 @@ def render_task_state_student(request, id):
 		return render(request, "task_overview.html", {'task': task, 'delivery': delivery})
 	elif state_cookie != None and s.get_machine(state_cookie) != None and s.get_machine(state_cookie).state == 'write_help_description':
 		group = request.user.group
-		notification = Notifiction.objects.get_notificaiton(group=group)
+		notification = Notifiction.objects.get_notification(group=group)
 		return render(request, "write_help_description.html", {'notification': notification})
 	else:
 		return render_state_student(request)
@@ -99,7 +98,11 @@ def back(request):
 @login_required  
 def ask(request):
   state_cookie = request.COOKIES.get("STATE_COOKIE")
-  s.trigger(uuid=state_cookie, trigger='ask')
+  try:
+    group_no=str(request.user.group.number)
+  except Exception:
+    group_no=None
+  s.trigger_ask_cancel(uuid=state_cookie, trigger='ask', group_no=group_no)
   time.sleep(0.5)
   return JsonResponse({}, status=204)
 
@@ -107,15 +110,11 @@ def ask(request):
 @login_required  
 def cancel(request):
   state_cookie = request.COOKIES.get("STATE_COOKIE")
-  s.trigger(uuid=state_cookie, trigger='cancel')
-  time.sleep(0.5)
-  return JsonResponse({}, status=204)
-
-@csrf_exempt
-@login_required  
-def cancel(request):
-  state_cookie = request.COOKIES.get("STATE_COOKIE")
-  s.trigger(uuid=state_cookie, trigger='cancel')
+  try:
+    group_no=str(request.user.group.number)
+  except Exception:
+    group_no=None
+  s.trigger_ask_cancel(uuid=state_cookie, trigger='cancel', group_no=group_no)
   time.sleep(0.5)
   return JsonResponse({}, status=204)
 

@@ -12,8 +12,7 @@
 				method: 'DELETE',
 			})
 				.then(response => {
-					if(response.status == 204){
-						window.location.href = "/teacher/"
+					if(response.status === 204){
 						window.location.reload()
 					}
 				})

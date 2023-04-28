@@ -2,7 +2,16 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .StudentMachineLogic import login as login_, logout, post_notification, complete_delivery
+from .StudentMachineLogic import login as login_, logout, post_notification, complete_delivery, post_notification_without_description, complete_help
+import paho.mqtt.client as mqtt
+
+
+MQTT_BROKER = "ec2-13-53-46-117.eu-north-1.compute.amazonaws.com"
+MQTT_PORT = 1883
+
+MQTT_TOPIC_INPUT = "raspberrypi"
+
+MQTT_PAYLOADS = {"ask": "assistance_requested", "cancel": "assistance_done"}
 
 
 class StudentMachine:
@@ -124,11 +133,32 @@ class StudentMachine:
 
 class StudentDriver:
     def __init__(self):
+        # get the logger object for the component
+        self.mqtt_client = mqtt.Client()
+        self.mqtt_client.username_pw_set("mosquitto", "mosquitto")
+        # callback methods
+        self.mqtt_client.on_connect = self.on_connect
+        self.mqtt_client.on_message = self.on_message
+        # Connect to the broker
+        self.mqtt_client.connect(MQTT_BROKER, MQTT_PORT)
+        # subscribe to proper topic(s) of your choice
+        self.mqtt_client.subscribe(f"{MQTT_TOPIC_INPUT}/#")
+        # start the internal loop to process MQTT messages
+        self.mqtt_client.loop_start()
+
         self.stm_driver = stmpy.Driver()
         self.stm_driver.start(keep_active=True)
 
     def trigger(self, uuid, trigger, kwargs={}):
         self.stm_driver.send(trigger, uuid, [''], kwargs=kwargs)
+
+    def trigger_ask_cancel(self, uuid, trigger, group_no):
+        self.send_ask_cancel_to_mqtt(trigger, group_no)
+        self.stm_driver.send(trigger, uuid, [''])
+
+    def send_ask_cancel_to_mqtt(self, trigger, group_no):
+        if group_no is not None:
+            self.mqtt_client.publish(f"{MQTT_TOPIC_INPUT}/{group_no}", json.dumps(MQTT_PAYLOADS[trigger]))
 
     def add_machine(self, uuid):
         student_machine = StudentMachine(uuid=uuid).stm
@@ -143,6 +173,28 @@ class StudentDriver:
     def stop(self):
         self.mqtt_client.loop_stop()
         self.stm_driver.stop()
+
+    def on_message(self, client, userdata, msg):
+        unwrapped = json.loads(msg.payload)
+        group_no = int(msg.topic.split("/")[-1])
+        if unwrapped == MQTT_PAYLOADS["ask"]:
+            post_notification_without_description(group_no)
+        elif unwrapped == MQTT_PAYLOADS["cancel"]:
+            complete_help(group_no)
+
+
+    def on_connect(self, client, userdata, flags, rc):
+        # we just log that we are connected
+
+        print("MQTT connected to {}".format(client))
+
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
 
 
 s = StudentDriver()
