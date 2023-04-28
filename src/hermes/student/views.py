@@ -10,19 +10,21 @@ import time, json
 
 
 def render_state_student(request):
-    state_cookie = request.COOKIES.get("STATE_COOKIE")
-    if state_cookie != None and s.get_machine(state_cookie) != None:
-        state = s.get_machine(state_cookie).state
-        return render(request, f"{state}.html", get_state_context(request=request, state=state))
-    else:
-        cookie = str(uuid4())
-        s.add_machine(cookie)
-        time.sleep(0.3)
-        state = s.get_machine(cookie).state
-        response = render(request, f"{state}.html", get_state_context(
-            request=request, state=state))
-        response.set_cookie("STATE_COOKIE", value=cookie, httponly=True)
-        return response
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  if state_cookie != None and "STUDENT" not in state_cookie:
+    s.pop_machine(state_cookie)
+  if state_cookie != None and s.get_machine(state_cookie) != None:
+    state = s.get_machine(state_cookie).state
+    return render(request, f"{state}.html", get_state_context(request=request, state=state))
+  else:
+    cookie = "STUDENT" + str(uuid4())
+    s.add_machine(cookie)
+    time.sleep(0.3)
+    state = s.get_machine(cookie).state
+    response = render(request, f"{state}.html", get_state_context(
+        request=request, state=state))
+    response.set_cookie("STATE_COOKIE", value=cookie, httponly=True)
+    return response
       
 def render_task_state_student(request, id):
 	state_cookie = request.COOKIES.get("STATE_COOKIE")
@@ -65,17 +67,17 @@ def task_select_context(request):
 
 @csrf_exempt
 def login(request):
-    if request.method == 'POST':
-        state_cookie = request.COOKIES.get("STATE_COOKIE")
-        data = json.loads(request.body)
-        email = data.get('email')
-        password = data.get('password')
-        s.trigger_login(uuid=state_cookie, request=request,
-                        email=email, password=password)
-        time.sleep(2)
-        return JsonResponse({'success': True}, status=200)
-    else:
-        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+  if request.method == 'POST':
+    state_cookie = request.COOKIES.get("STATE_COOKIE")
+    data = json.loads(request.body)
+    email = data.get('email')
+    password = data.get('password')
+    s.trigger(trigger='login', uuid=state_cookie, kwargs={
+                          'request': request, 'email': email, 'password': password})
+    time.sleep(2)
+    return JsonResponse({'success': True}, status=200)
+  else:
+    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
       
 @csrf_exempt
 @login_required  
@@ -108,3 +110,21 @@ def cancel(request):
   s.trigger(uuid=state_cookie, trigger='cancel')
   time.sleep(0.5)
   return JsonResponse({}, status=204)
+
+@csrf_exempt
+@login_required  
+def cancel(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  s.trigger(uuid=state_cookie, trigger='cancel')
+  time.sleep(0.5)
+  return JsonResponse({}, status=204)
+
+@csrf_exempt
+@login_required  
+def logout(request):
+  state_cookie = request.COOKIES.get("STATE_COOKIE")
+  s.trigger(trigger='logout', uuid=state_cookie, kwargs={'request': request})
+  time.sleep(0.5)
+  response = JsonResponse({}, status=204)
+  response.delete_cookie('STATE_COOKIE')
+  return response

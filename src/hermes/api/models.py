@@ -27,7 +27,7 @@ class Task(models.Model):
  
 	class Meta:
 		unique_together = [('title', 'uuid')]
-
+	
  
 	objects = TaskManager()
  

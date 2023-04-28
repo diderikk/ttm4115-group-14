@@ -18,26 +18,55 @@
 					}
 				})
 		}
+		function logout() {
+			fetch(`/api/tlogout/`, {
+				method: 'POST',
+			})
+				.then(response => {
+					if (response.status == 204) {
+						window.location.reload()
+					}
+				})
+		}
 	</script>
 </head>
 
 <body class="py-24 flex flex-col justify-start items-center w-screen h-screen overflow-y-auto">
-	<h1 class="text-5xl font-bold mb-22">Units</h1>
+	<div class="flex items-center justify-evenly w-full md:w-[80%]">
+		<svg onclick="logout()" class="w-16 border rounded-xl cursor-pointer hover:bg-gray-100" viewBox="0 0 1024 1024"
+			xmlns="http://www.w3.org/2000/svg">
+			<path
+				d="M868 732h-70.3c-4.8 0-9.3 2.1-12.3 5.8-7 8.5-14.5 16.7-22.4 24.5a353.84 353.84 0 0 1-112.7 75.9A352.8 352.8 0 0 1 512.4 866c-47.9 0-94.3-9.4-137.9-27.8a353.84 353.84 0 0 1-112.7-75.9 353.28 353.28 0 0 1-76-112.5C167.3 606.2 158 559.9 158 512s9.4-94.2 27.8-137.8c17.8-42.1 43.4-80 76-112.5s70.5-58.1 112.7-75.9c43.6-18.4 90-27.8 137.9-27.8 47.9 0 94.3 9.3 137.9 27.8 42.2 17.8 80.1 43.4 112.7 75.9 7.9 7.9 15.3 16.1 22.4 24.5 3 3.7 7.6 5.8 12.3 5.8H868c6.3 0 10.2-7 6.7-12.3C798 160.5 663.8 81.6 511.3 82 271.7 82.6 79.6 277.1 82 516.4 84.4 751.9 276.2 942 512.4 942c152.1 0 285.7-78.8 362.3-197.7 3.4-5.3-.4-12.3-6.7-12.3zm88.9-226.3L815 393.7c-5.3-4.2-13-.4-13 6.3v76H488c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h314v76c0 6.7 7.8 10.5 13 6.3l141.9-112a8 8 0 0 0 0-12.6z" />
+		</svg>
+		<h1 class="text-5xl font-bold">Units</h1>
+		<div class="w-16 border rounded-xl bg-transparent">
+		</div>
+	</div>	
 	<div id="create-task-btn"
 		class="flex justify-center items-center w-44 h-20 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 my-10 rounded focus:outline-none focus:shadow-outline cursor-pointer">
 		Create Task
 	</div>
+	<div
+		class="flex flex-col mb-10 py-4 items-center jutify-center relative lg:absolute lg:inset-y-0 lg:right-[15%] lg:my-auto w-52 min-h-[20vh] h-fit bg-gray-300 rounded">
+		<h3 class="text-lg font-bold underline">Assist List:</h3>
+		<div id="assist" class="w-full flex flex-col items-center">
+			{% for group in notifications %}
+			<div onclick="assistGroup({{ group }})"
+				class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
+			{% endfor %}
+		</div>
+	</div>
 	<div class="flex flex-col justify-start items-center w-full">
 		{% for unit, titles in unit_titles.items %}
 		<div
-			class="flex flex-col items-center justify-start rounded text-xl font-bold w-[30%] h-full bg-gray-300 mb-10 p-5 overflow-y-none">
+			class="flex flex-col items-center justify-start rounded text-xl font-bold w-[80%] lg:w-[30%] md:w-[50%] h-full bg-gray-300 mb-10 p-5 overflow-y-none">
 			<h2 class="text-2xl">Unit {{ unit }}</h2>
 			<table class="w-full h-full">
 				<thead>
 					<tr class="border-b-2">
 						<th class="py-4">Group</th>
-						{% for title in titles %}
-						<th>{{ title }}</th>
+						{% for title_unit in titles %}
+						<th>{{ title_unit.0 }}</th>
 						{% endfor %}
 					</tr>
 				</thead>
@@ -45,8 +74,8 @@
 					{% for group, tasks in group_task.items %}
 					<tr class="border-b-2">
 						<th class="py-4">{{ group }}</th>
-						{% for title in titles %}
-						{% if title in tasks %}
+						{% for title_unit in titles %}
+						{% if title_unit in tasks %}
 						<th id="{{ unit }}_{{ group }}_{{ title|slugify }}">X</th>
 						{% else %}
 						<th id="{{ unit }}_{{ group }}_{{ title|slugify }}"></th>
@@ -59,16 +88,7 @@
 		</div>
 		{% endfor %}
 	</div>
-	<div
-		class="flex flex-col py-4 items-center absolute inset-y-0 right-[15%] my-auto w-52 min-h-[20vh] h-fit bg-gray-300 rounded">
-		<h3 class="text-lg font-bold underline">Assist List:</h3>
-		<div id="assist" class="w-full flex flex-col items-center">
-			{% for group in notifications %}
-			<div onclick="assistGroup({{ group }})"
-				class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
-			{% endfor %}
-		</div>
-	</div>
+	
 </body>
 
 <script>
@@ -86,8 +106,8 @@
 	})
 
 
-
-	const socket = new WebSocket('ws://127.0.0.1:8000/ws/teacher/');
+	
+	const socket = new WebSocket(`wss://${window.location.host}/ws/teacher/`);
 
 	socket.addEventListener('open', function (event) {
 		console.log('Connected to WebSocket!');
@@ -99,7 +119,7 @@
 			console.log(broadcast)
 			const div = document.createElement("div")
 			div.className = "text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer"
-			div.onclick = function() { assistGroup(broadcast.group) }
+			div.onclick = function () { assistGroup(broadcast.group) }
 			div.innerHTML = broadcast.group
 			document.getElementById("assist").appendChild(div)
 		}
