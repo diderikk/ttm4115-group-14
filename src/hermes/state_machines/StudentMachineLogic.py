@@ -41,7 +41,7 @@ def post_notification(arg, **args):
 		Notifiction.objects.update_notification(group, description)
 	return "task_select"
 
-def complete_delivery(arg, **args):
+def alert_teacher(arg, **args):
 	request = args["request"]
 	task = args["task"]
 	group = request.user.group

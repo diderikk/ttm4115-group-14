@@ -18,14 +18,14 @@ def logout(arg, **args):
 		logout_user(request)
 		return "authentication"
 
-def complete_help(arg, **args):
+def delete_notification(arg, **args):
 	request = args["request"]
 	user = request.user
 	Notifiction.objects.delete_notification_by_assignee(assignee=user)
 	return "progression_view"
 
 
-def assistance_notification(arg, **args):
+def update_assignee(arg, **args):
 	request = args["request"]
 	group_number = args["group_number"]
 	user = request.user
@@ -33,7 +33,7 @@ def assistance_notification(arg, **args):
 	return "assist_group"
 
 
-def task_published(arg, **args):
+def create_task(arg, **args):
 	request = args["request"]
 	data = json.loads(request.body)
 	title = data.get('title')

@@ -62,7 +62,7 @@ def notifications(request):
 def notifications_detail(request, group_number):
     state_cookie = request.COOKIES.get("STATE_COOKIE")
     if request.method == 'PUT':
-        t.trigger(uuid=state_cookie, trigger='assistance_notification', kwargs={
+        t.trigger(uuid=state_cookie, trigger='start_assistance', kwargs={
                   'request': request, 'group_number': group_number})
         time.sleep(0.5)
         return JsonResponse({}, status=204)
@@ -75,7 +75,7 @@ def notifications_detail(request, group_number):
 def tasks(request):
     state_cookie = request.COOKIES.get("STATE_COOKIE")
     if request.method == 'POST':
-        t.trigger(uuid=state_cookie, trigger='task_published', kwargs={'request': request})
+        t.trigger(uuid=state_cookie, trigger='publish_task', kwargs={'request': request})
         time.sleep(0.5)
         return JsonResponse({}, status=201)
     elif request.method == 'GET':

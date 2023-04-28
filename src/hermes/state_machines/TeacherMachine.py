@@ -2,7 +2,7 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .TeacherMachineLogic import login as login_, logout, complete_help, assistance_notification, task_published
+from .TeacherMachineLogic import login as login_, logout, delete_notification, update_assignee, create_task
 
 class TeacherMachine:
     def __init__(self, uuid):
@@ -20,14 +20,21 @@ class TeacherMachine:
         t_duty = {
             "trigger": "duty",
             "source": "progression_view",
-            "target": "publish_task",
+            "target": "write_task",
         }
 
-        t_published_task = {
-            "trigger": "task_published",
-            "source": "publish_task",
-            "function": task_published,
+        t_publish_task = {
+            "trigger": "publish_task",
+            "source": "write_task",
+            "function": create_task,
         }
+        
+        t_cancel = {
+            "trigger": "cancel",
+            "source": "write_task",
+            "target": "progression_view",
+        }
+
         
         t_logout = {
             "trigger": "logout",
@@ -35,22 +42,17 @@ class TeacherMachine:
             "function": logout
         }
         
-        t_cancel = {
-            "trigger": "cancel",
-            "source": "publish_task",
-            "target": "progression_view",
-        }
 
-        t_assistance_notification = {
-            "trigger": "assistance_notification",
+        t_start_assistance = {
+            "trigger": "start_assistance",
             "source": "progression_view",
-            "function": assistance_notification,
+            "function": update_assignee,
         }
 
         t_complete_help = {
             "trigger": "complete_help",
             "source": "assist_group",
-            "function": complete_help,
+            "function": delete_notification,
         }
 
         authentication = {
@@ -63,7 +65,7 @@ class TeacherMachine:
             "entry": 'print_state("progression_view")',
         }
 
-        publish_task = {"name": "publish_task", "entry": 'print_state("publish_task")'}
+        write_task = {"name": "write_task", "entry": 'print_state("write_task")'}
 
         assist_group = {"name": "assist_group", "entry": 'print_state("assist_group")'}
 
@@ -75,11 +77,11 @@ class TeacherMachine:
                 t_logout,
                 t_duty,
                 t_cancel,
-                t_published_task,
-                t_assistance_notification,
+                t_publish_task,
+                t_start_assistance,
                 t_complete_help,
             ],
-            states=[authentication, progression_view, publish_task, assist_group],
+            states=[authentication, progression_view, write_task, assist_group],
             obj=self,
         )
 

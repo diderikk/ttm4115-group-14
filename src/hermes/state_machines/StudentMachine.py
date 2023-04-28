@@ -2,7 +2,7 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .StudentMachineLogic import login as login_, logout, post_notification, complete_delivery
+from .StudentMachineLogic import login as login_, logout, post_notification, alert_teacher
 
 
 class StudentMachine:
@@ -27,7 +27,7 @@ class StudentMachine:
         t_complete = {
             "trigger": "complete",
             "source": "task_overview",
-            "function": complete_delivery
+            "function": alert_teacher
         }
 
         t_logout = {
