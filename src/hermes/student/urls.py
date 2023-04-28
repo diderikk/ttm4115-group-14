@@ -9,4 +9,5 @@ urlpatterns = [
     path('api/back/', views.back),
     path('api/ask/', views.ask),
     path('api/cancel/', views.cancel),
+    path('api/slogout/', views.logout),
 ]
