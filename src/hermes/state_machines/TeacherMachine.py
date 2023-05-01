@@ -108,8 +108,14 @@ class TeacherDriver:
         self.stm_driver._terminate_stm(uuid)
     
     def stop(self):
-        self.mqtt_client.loop_stop()
         self.stm_driver.stop()
 
+
+def main():
+    pass
+
+
+if __name__ == "__main__":
+    main()
 
 t = TeacherDriver()

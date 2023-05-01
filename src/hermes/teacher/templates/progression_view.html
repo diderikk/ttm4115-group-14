@@ -51,7 +51,7 @@
 		<h3 class="text-lg font-bold underline">Assist List:</h3>
 		<div id="assist" class="w-full flex flex-col items-center">
 			{% for group in notifications %}
-			<div onclick="assistGroup({{ group }})"
+			<div onclick="assistGroup({{ group }})" id="notification_{{ group }}"
 				class="text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer">{{ group }}</div>
 			{% endfor %}
 		</div>
@@ -107,7 +107,7 @@
 
 
 	
-	const socket = new WebSocket(`wss://${window.location.host}/ws/teacher/`);
+	const socket = new WebSocket(`ws://${window.location.host}/ws/teacher/`);
 
 	socket.addEventListener('open', function (event) {
 		console.log('Connected to WebSocket!');
@@ -115,14 +115,21 @@
 
 	socket.addEventListener('message', function (event) {
 		broadcast = JSON.parse(JSON.parse(event.data)["broadcast"])
-		if ("id" in broadcast) {
+		if ("id" in broadcast && broadcast.method === "POST") {
 			console.log(broadcast)
 			const div = document.createElement("div")
+      div.id = `notification_${broadcast.group}`
 			div.className = "text-center mt-3 w-[80%] hover rounded hover:bg-gray-400 cursor-pointer"
 			div.onclick = function () { assistGroup(broadcast.group) }
 			div.innerHTML = broadcast.group
 			document.getElementById("assist").appendChild(div)
 		}
+    else if("id" in broadcast && broadcast.method === "DELETE"){
+        const rChild = document.getElementById(`notification_${broadcast.group}`)
+        console.log(`notification_${broadcast.group}`)
+        console.log(rChild)
+        document.getElementById("assist").removeChild(rChild)
+    }
 		else {
 			title = broadcast.title.replaceAll(' ', '-').toLowerCase()
 			document.getElementById(`${broadcast.unit}_${broadcast.group}_${title}`).innerHTML = "X"
