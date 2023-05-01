@@ -41,6 +41,24 @@ def post_notification(arg, **args):
 		description = data.get("description")
 		group = request.user.group
 		Notifiction.objects.update_notification(group, description)
+	return "task_overview"
+
+def post_notification_tech(arg, **args):
+	request = args["request"]
+	if request.method == 'POST':
+		data = json.loads(request.body)
+		description = data.get("description")
+		group = request.user.group
+		notification = Notifiction.objects.get_notification(group)
+		if notification is None:
+			notification = Notifiction.objects.create_notification(description=description, group=group)
+			message = serialize_message(notification=notification, group=group, method="POST")
+			send_to_ws(message)
+	else:
+		data = json.loads(request.body)
+		description = data.get("description")
+		group = request.user.group
+		Notifiction.objects.update_notification(group, description)
 	return "task_select"
 
 def post_notification_without_description(group_number):
@@ -59,7 +77,7 @@ def complete_help(group_number):
 		message = serialize_message(notification=notification, group=group, method="DELETE")
 		send_to_ws(message)
 
-def complete_delivery(arg, **args):
+def alert_teacher(arg, **args):
 	request = args["request"]
 	task = args["task"]
 	group = request.user.group

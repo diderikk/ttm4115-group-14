@@ -2,7 +2,7 @@ import stmpy
 import logging
 from threading import Thread
 import json
-from .StudentMachineLogic import login as login_, logout, post_notification, complete_delivery, post_notification_without_description, complete_help
+from .StudentMachineLogic import login as login_, logout, post_notification, post_notification_tech, alert_teacher, post_notification_without_description, complete_help
 import paho.mqtt.client as mqtt
 
 
@@ -11,7 +11,7 @@ MQTT_PORT = 1883
 
 MQTT_TOPIC_INPUT = "raspberrypi"
 
-MQTT_PAYLOADS = {"ask": "assistance_requested", "cancel": "assistance_done"}
+MQTT_PAYLOADS = {"ask": "assistance_requested", "cancel": "assistance_done", "send_notification": "assistance_requested"}
 
 
 class StudentMachine:
@@ -36,7 +36,7 @@ class StudentMachine:
         t_complete = {
             "trigger": "complete",
             "source": "task_overview",
-            "function": complete_delivery
+            "function": alert_teacher
         }
 
         t_logout = {
@@ -66,7 +66,7 @@ class StudentMachine:
         t_send_notification_tech = {
             "trigger": "send_notification",
             "source": "write_technical_error_description",
-            "function": post_notification
+            "function": post_notification_tech
         }
 
         t_cancel = {
@@ -152,11 +152,11 @@ class StudentDriver:
     def trigger(self, uuid, trigger, kwargs={}):
         self.stm_driver.send(trigger, uuid, [''], kwargs=kwargs)
 
-    def trigger_ask_cancel(self, uuid, trigger, group_no):
-        self.send_ask_cancel_to_mqtt(trigger, group_no)
-        self.stm_driver.send(trigger, uuid, [''])
+    def trigger_send_notification(self, uuid, trigger, group_no, kwargs={}):
+        self.send_notification_to_mqtt(trigger, group_no)
+        self.stm_driver.send(trigger, uuid, [''], kwargs=kwargs)
 
-    def send_ask_cancel_to_mqtt(self, trigger, group_no):
+    def send_notification_to_mqtt(self, trigger, group_no):
         if group_no is not None:
             self.mqtt_client.publish(f"{MQTT_TOPIC_INPUT}/{group_no}", json.dumps(MQTT_PAYLOADS[trigger]))
 

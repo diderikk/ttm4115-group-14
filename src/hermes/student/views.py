@@ -102,7 +102,7 @@ def ask(request):
     group_no=str(request.user.group.number)
   except Exception:
     group_no=None
-  s.trigger_ask_cancel(uuid=state_cookie, trigger='ask', group_no=group_no)
+  s.trigger(uuid=state_cookie, trigger='ask')
   time.sleep(0.5)
   return JsonResponse({}, status=204)
 
@@ -114,7 +114,7 @@ def cancel(request):
     group_no=str(request.user.group.number)
   except Exception:
     group_no=None
-  s.trigger_ask_cancel(uuid=state_cookie, trigger='cancel', group_no=group_no)
+  s.trigger(uuid=state_cookie, trigger='cancel')
   time.sleep(0.5)
   return JsonResponse({}, status=204)
 

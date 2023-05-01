@@ -26,22 +26,21 @@ def logout(arg, **args):
 		logout_user(request)
 		return "authentication"
 
-def complete_help(arg, **args):
+def delete_notification(arg, **args):
 	request = args["request"]
-	print("HELLO")
 	user = request.user
 	try:
 		notification = Notifiction.objects.get(assignee=user)
 		notification.delete()
 		message = serialize_message(notification=notification, group=notification.group, method="DELETE")
 		send_to_ws(message)
-		s.send_ask_cancel_to_mqtt("cancel", notification.group.number)
+		s.send_notification_to_mqtt("cancel", notification.group.number)
 	except:
 		pass
 	return "progression_view"
 
 
-def assistance_notification(arg, **args):
+def update_assignee(arg, **args):
 	request = args["request"]
 	group_number = args["group_number"]
 	user = request.user
@@ -49,7 +48,7 @@ def assistance_notification(arg, **args):
 	return "assist_group"
 
 
-def task_published(arg, **args):
+def create_task(arg, **args):
 	request = args["request"]
 	data = json.loads(request.body)
 	title = data.get('title')
