@@ -177,6 +177,7 @@ class StudentDriver:
     def on_message(self, client, userdata, msg):
         unwrapped = json.loads(msg.payload)
         group_no = int(msg.topic.split("/")[-1])
+        print(unwrapped)
         if unwrapped == MQTT_PAYLOADS["ask"]:
             post_notification_without_description(group_no)
         elif unwrapped == MQTT_PAYLOADS["cancel"]:

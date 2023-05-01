@@ -78,7 +78,7 @@ class WebSocketConsumer(AsyncWebsocketConsumer):
     
     async def broadcast(self, event):
       message = event['message']
-      
+      print("WS", message)
       await self.send(text_data=json.dumps({
             'broadcast': message
       }))

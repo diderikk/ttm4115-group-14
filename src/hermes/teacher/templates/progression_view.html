@@ -76,9 +76,9 @@
 						<th class="py-4">{{ group }}</th>
 						{% for title_unit in titles %}
 						{% if title_unit in tasks %}
-						<th id="{{ unit }}_{{ group }}_{{ title|slugify }}">X</th>
+						<th id="{{ unit }}_{{ group }}_{{ title_unit.0|slugify }}">X</th>
 						{% else %}
-						<th id="{{ unit }}_{{ group }}_{{ title|slugify }}"></th>
+						<th id="{{ unit }}_{{ group }}_{{ title_unit.0|slugify }}"></th>
 						{% endif %}
 						{% endfor %}
 					</tr>
@@ -107,7 +107,7 @@
 
 
 	
-	const socket = new WebSocket(`ws://${window.location.host}/ws/teacher/`);
+	const socket = new WebSocket(`wss://${window.location.host}/ws/teacher/`);
 
 	socket.addEventListener('open', function (event) {
 		console.log('Connected to WebSocket!');
