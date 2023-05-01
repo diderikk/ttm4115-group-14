@@ -1,7 +1,15 @@
+from asgiref.sync import async_to_sync
 from django.contrib.auth import authenticate, login as login_user, logout as logout_user
 from hermes.api.models import Notifiction, Task
 import json
+from hermes.api.websocket import send_to_group
+from .StudentMachineLogic import serialize_message
+from hermes.state_machines.StudentMachine import s
 
+
+@async_to_sync
+async def send_to_ws(message):
+	await send_to_group('teacher', message)
 def login(arg, **args) -> str:
 		email = args["email"]
 		password = args["password"]
@@ -20,8 +28,16 @@ def logout(arg, **args):
 
 def complete_help(arg, **args):
 	request = args["request"]
+	print("HELLO")
 	user = request.user
-	Notifiction.objects.delete_notification_by_assignee(assignee=user)
+	try:
+		notification = Notifiction.objects.get(assignee=user)
+		notification.delete()
+		message = serialize_message(notification=notification, group=notification.group, method="DELETE")
+		send_to_ws(message)
+		s.send_ask_cancel_to_mqtt("cancel", notification.group.number)
+	except:
+		pass
 	return "progression_view"
 
 

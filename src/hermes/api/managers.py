@@ -18,7 +18,7 @@ class GroupManager(models.Manager):
 		return group
 
 class NotificationManager(models.Manager):
-	def get_notificaiton(self, group):
+	def get_notification(self, group):
 		try:
 			return self.get(group=group)
 		except:
